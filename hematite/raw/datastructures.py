@@ -58,7 +58,7 @@ class Headers(OMD):
                 self_add(k, v)
         elif isinstance(E, OMD):
             return super(Headers, self).update(E)
-        elif hasattr(E, 'keys'):
+        elif hasattr(E, "keys"):
             for k in list(E.keys()):
                 self[k] = E[k]
         else:
@@ -122,24 +122,21 @@ class Headers(OMD):
         return super(Headers, self).poplast(k)
 
     def items(self, multi=False, preserve_case=True):
-        return list(self.iteritems(multi=multi,
-                                   preserve_case=preserve_case))
+        return list(self.iteritems(multi=multi, preserve_case=preserve_case))
 
     def __contains__(self, k):
         return super(Headers, self).__contains__(k.lower())
 
 
 class Decompress(object):
-    WBITS = {'gzip': (16 + zlib.MAX_WBITS,),
-             'deflate': ()}
+    WBITS = {"gzip": (16 + zlib.MAX_WBITS,), "deflate": ()}
 
     def __init__(self, decompression):
         if decompression:
             try:
                 args = self.WBITS[decompression]
             except KeyError:
-                raise RuntimeError('unknown decompression '
-                                   '{0}'.format(decompression))
+                raise RuntimeError("unknown decompression " "{0}".format(decompression))
             self.decompressor = zlib.decompressobj(*args)
             self.decompress = self.decompressor.decompress
 
@@ -148,7 +145,6 @@ class Decompress(object):
 
 
 class ChunkedBody(Decompress):
-
     def __init__(self, chunks=None, decompression=None):
         super(ChunkedBody, self).__init__(decompression)
         self.chunks = chunks or []
@@ -162,22 +158,21 @@ class ChunkedBody(Decompress):
         return self.chunks.append(self.decompress(chunk))
 
     def complete(self, length):
-        self.data = ''.join(self.chunks)
+        self.data = "".join(self.chunks)
         self.nominal_length = length
 
     def __repr__(self):
         cn = self.__class__.__name__
         if len(self.chunks) == 1:
-            chunkstr = '1 chunk'
+            chunkstr = "1 chunk"
         else:
-            chunkstr = '%s chunks' % len(self.chunks)
-        compstr = 'complete' if self.data else 'incomplete'
+            chunkstr = "%s chunks" % len(self.chunks)
+        compstr = "complete" if self.data else "incomplete"
         totsize = sum([len(c) for c in self.chunks])
-        return '<%s %s, %s total bytes, %s>' % (cn, chunkstr, totsize, compstr)
+        return "<%s %s, %s total bytes, %s>" % (cn, chunkstr, totsize, compstr)
 
 
 class Body(Decompress):
-
     def __init__(self, body=None, decompression=None):
         super(Body, self).__init__(decompression)
         self.body = body or []
@@ -193,17 +188,17 @@ class Body(Decompress):
         return [self.body]
 
     def complete(self, length):
-        self.data = ''.join(self.body)
+        self.data = "".join(self.body)
         self.nominal_length = length
 
     def __repr__(self):
         cn = self.__class__.__name__
-        partstr = ''
+        partstr = ""
         if len(self.body) > 1:
-            partstr = ' %s parts,' % len(self.body)
-        compstr = 'complete' if self.data else 'incomplete'
+            partstr = " %s parts," % len(self.body)
+        compstr = "complete" if self.data else "incomplete"
         totsize = sum([len(p) for p in self.body])
-        return '<%s%s %s total bytes, %s>' % (cn, partstr, totsize, compstr)
+        return "<%s%s %s total bytes, %s>" % (cn, partstr, totsize, compstr)
 
 
 class UnifiedBody(object):

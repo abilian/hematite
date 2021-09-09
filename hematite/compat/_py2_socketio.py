@@ -1,4 +1,4 @@
-'''Compatability module that backports SocketIO to Python 2.6 and 2.7'''
+"""Compatability module that backports SocketIO to Python 2.6 and 2.7"""
 import array
 import errno
 import io
@@ -80,29 +80,25 @@ class _SocketIO_py27(io.RawIOBase):
             raise
 
     def readable(self):
-        """True if the SocketIO is open for reading.
-        """
+        """True if the SocketIO is open for reading."""
         if self.closed:
             raise ValueError("I/O operation on closed socket.")
         return self._reading
 
     def writable(self):
-        """True if the SocketIO is open for writing.
-        """
+        """True if the SocketIO is open for writing."""
         if self.closed:
             raise ValueError("I/O operation on closed socket.")
         return self._writing
 
     def seekable(self):
-        """True if the SocketIO is open for seeking.
-        """
+        """True if the SocketIO is open for seeking."""
         if self.closed:
             raise ValueError("I/O operation on closed socket.")
         return super(_SocketIO_py27, self).seekable()
 
     def fileno(self):
-        """Return the file descriptor of the underlying socket.
-        """
+        """Return the file descriptor of the underlying socket."""
         self._checkClosed()
         return self._sock.fileno()
 
@@ -128,7 +124,6 @@ class _SocketIO_py27(io.RawIOBase):
 
 
 class _SocketIO_py26(_SocketIO_py27):
-
     def readinto(self, b):
         """Read up to len(b) bytes into the writable buffer *b* and return
         the number of bytes read.  If the socket is non-blocking and no bytes
@@ -137,12 +132,13 @@ class _SocketIO_py26(_SocketIO_py27):
         If *b* is non-empty, a 0 return value indicates that the connection
         was shutdown at the other end.
         """
-        a = array.array('b', b)
+        a = array.array("b", b)
         res = super(_SocketIO_py26, self).readinto(a)
         b[:] = buffer(a)
         return res
 
-if sys.version_info < (2, 7, 0, 'final'):
+
+if sys.version_info < (2, 7, 0, "final"):
     SocketIO = _SocketIO_py26
 else:
     SocketIO = _SocketIO_py27

@@ -4,8 +4,7 @@ import time
 import select
 
 
-def join(reqs, timeout=5.0, raise_exc=True,
-         follow_redirects=None, select_timeout=0.05):
+def join(reqs, timeout=5.0, raise_exc=True, follow_redirects=None, select_timeout=0.05):
     ret = list(reqs)
     cutoff_time = time.time() + timeout
 
@@ -24,10 +23,9 @@ def join(reqs, timeout=5.0, raise_exc=True,
             break
 
         if readers or selectable_writers:
-            read_ready, write_ready, _ = select.select(readers,
-                                                       selectable_writers,
-                                                       [],
-                                                       select_timeout)
+            read_ready, write_ready, _ = select.select(
+                readers, selectable_writers, [], select_timeout
+            )
             write_ready.extend(forced_writers)
         else:
             read_ready = []

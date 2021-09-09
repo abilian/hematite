@@ -5,7 +5,8 @@ from collections import KeysView, ValuesView, ItemsView
 
 try:
     from compat import make_sentinel
-    _MISSING = make_sentinel(var_name='_MISSING')
+
+    _MISSING = make_sentinel(var_name="_MISSING")
 except ImportError:
     _MISSING = object()
 
@@ -13,7 +14,7 @@ except ImportError:
 PREV, NEXT, KEY, VALUE, SPREV, SNEXT = list(range(6))
 
 
-__all__ = ['MultiDict', 'OrderedMultiDict']
+__all__ = ["MultiDict", "OrderedMultiDict"]
 
 try:
     profile
@@ -69,10 +70,13 @@ class OrderedMultiDict(dict):
     Mad props to Mark Williams for all his help.
 
     """
+
     def __init__(self, *args, **kwargs):
         if len(args) > 1:
-            raise TypeError('%s expected at most 1 argument, got %s'
-                            % (self.__class__.__name__, len(args)))
+            raise TypeError(
+                "%s expected at most 1 argument, got %s"
+                % (self.__class__.__name__, len(args))
+            )
         super(OrderedMultiDict, self).__init__()
 
         self._clear_ll()
@@ -145,7 +149,7 @@ class OrderedMultiDict(dict):
                     del self[k]
             for k, v in E.iteritems(multi=True):
                 self_add(k, v)
-        elif hasattr(E, 'keys'):
+        elif hasattr(E, "keys"):
             for k in list(E.keys()):
                 self[k] = E[k]
         else:
@@ -165,7 +169,7 @@ class OrderedMultiDict(dict):
             iterator = iter(list(E.items()))
         elif isinstance(E, OrderedMultiDict):
             iterator = E.iteritems(multi=True)
-        elif hasattr(E, 'keys'):
+        elif hasattr(E, "keys"):
             iterator = ((k, E[k]) for k in list(E.keys()))
         else:
             iterator = E
@@ -198,12 +202,13 @@ class OrderedMultiDict(dict):
             for (selfk, selfv), (otherk, otherv) in zip(selfi, otheri):
                 if selfk != otherk or selfv != otherv:
                     return False
-            if not(next(selfi, _MISSING) is _MISSING
-                   and next(otheri, _MISSING) is _MISSING):
+            if not (
+                next(selfi, _MISSING) is _MISSING and next(otheri, _MISSING) is _MISSING
+            ):
                 # leftovers  (TODO: watch for StopIteration?)
                 return False
             return True
-        elif hasattr(other, 'keys'):
+        elif hasattr(other, "keys"):
             for selfk in self:
                 try:
                     other[selfk] == self[selfk]
@@ -230,7 +235,7 @@ class OrderedMultiDict(dict):
             if self:
                 k = self.root[PREV][KEY]
             else:
-                raise KeyError('empty %r' % type(self))
+                raise KeyError("empty %r" % type(self))
         try:
             self._remove(k)
         except KeyError:
@@ -331,8 +336,8 @@ class OrderedMultiDict(dict):
 
     def __repr__(self):
         cn = self.__class__.__name__
-        kvs = ', '.join([repr((k, v)) for k, v in self.iteritems(multi=True)])
-        return '%s([%s])' % (cn, kvs)
+        kvs = ", ".join([repr((k, v)) for k, v in self.iteritems(multi=True)])
+        return "%s([%s])" % (cn, kvs)
 
     def viewkeys(self):
         "OMD.viewkeys() -> a set-like object providing a view on OMD's keys"
@@ -355,6 +360,7 @@ class FastIterOrderedMultiDict(OrderedMultiDict):
     is faster and uses constant memory but adding duplicate key-value
     pairs is slower.
     """
+
     def _clear_ll(self):
         # TODO: always reset objects? (i.e., no else block below)
         try:
@@ -363,9 +369,7 @@ class FastIterOrderedMultiDict(OrderedMultiDict):
             _map = self._map = {}
             self.root = []
         _map.clear()
-        self.root[:] = [self.root, self.root,
-                        None, None,
-                        self.root, self.root]
+        self.root[:] = [self.root, self.root, None, None, self.root, self.root]
 
     def _insert(self, k, v):
         root = self.root
@@ -374,9 +378,7 @@ class FastIterOrderedMultiDict(OrderedMultiDict):
         last = root[PREV]
 
         if cells is empty:
-            cell = [last, root,
-                    k, v,
-                    last, root]
+            cell = [last, root, k, v, last, root]
             # was the last one skipped?
             if last[SPREV][SNEXT] is root:
                 last[SPREV][SNEXT] = cell
@@ -386,9 +388,7 @@ class FastIterOrderedMultiDict(OrderedMultiDict):
             # if the previous was skipped, go back to the cell that
             # skipped it
             sprev = last[SPREV] if not (last[SPREV][SNEXT] is last) else last
-            cell = [last, root,
-                    k, v,
-                    sprev, root]
+            cell = [last, root, k, v, sprev, root]
             # skip me
             last[SNEXT] = root
             last[NEXT] = root[PREV] = root[SPREV] = cell
@@ -452,37 +452,39 @@ class FastIterOrderedMultiDict(OrderedMultiDict):
 
 OMD = OrderedMultiDict
 
-_ITEMSETS = [[],
-             [('a', 1), ('b', 2), ('c', 3)],
-             [('A', 'One'), ('A', 'One'), ('A', 'One')],
-             [('Z', -1), ('Y', -2), ('Y', -2)],
-             [('a', 1), ('b', 2), ('a', 3), ('c', 4)]]
+_ITEMSETS = [
+    [],
+    [("a", 1), ("b", 2), ("c", 3)],
+    [("A", "One"), ("A", "One"), ("A", "One")],
+    [("Z", -1), ("Y", -2), ("Y", -2)],
+    [("a", 1), ("b", 2), ("a", 3), ("c", 4)],
+]
 
 
 def test_dict_init():
     d = dict(_ITEMSETS[1])
     omd = OMD(d)
 
-    assert omd['a'] == 1
-    assert omd['b'] == 2
-    assert omd['c'] == 3
+    assert omd["a"] == 1
+    assert omd["b"] == 2
+    assert omd["c"] == 3
 
     assert len(omd) == 3
-    assert omd.getlist('a') == [1]
+    assert omd.getlist("a") == [1]
     assert omd == d
 
 
 def test_todict():
     omd = OMD(_ITEMSETS[2])
     assert len(omd) == 1
-    assert omd['A'] == 'One'
+    assert omd["A"] == "One"
 
     d = dict(omd)
     assert len(d) == 1
-    assert d['A'] == ['One', 'One', 'One']
+    assert d["A"] == ["One", "One", "One"]
 
     flat = omd.todict()
-    assert flat['A'] == 'One'
+    assert flat["A"] == "One"
 
     for itemset in _ITEMSETS:
         omd = OMD(itemset)
@@ -527,7 +529,7 @@ def test_clear():
         assert not omd
         omd.clear()
         assert not omd
-        omd['a'] = 22
+        omd["a"] = 22
         assert omd
         omd.clear()
         assert not omd
@@ -535,6 +537,7 @@ def test_clear():
 
 def test_types():
     import collections
+
     omd = OMD()
     assert isinstance(omd, dict)
     assert isinstance(omd, collections.MutableMapping)
@@ -545,7 +548,7 @@ def test_multi_correctness():
     redun = 5
 
     _rng = list(range(size))
-    _rng_redun = list(range(size/redun)) * redun
+    _rng_redun = list(range(size / redun)) * redun
     _pairs = list(zip(_rng_redun, _rng))
 
     omd = OMD(_pairs)
@@ -572,13 +575,13 @@ def test_kv_consistency():
 
 def test_update_basic():
     omd = OMD(_ITEMSETS[1])
-    omd2 = OMD({'a': 10})
+    omd2 = OMD({"a": 10})
     omd.update(omd2)
-    assert omd['a'] == 10
-    assert omd.getlist('a') == [10]
+    assert omd["a"] == 10
+    assert omd.getlist("a") == [10]
 
     omd2_c = omd2.copy()
-    omd2_c.pop('a')
+    omd2_c.pop("a")
     assert omd2 != omd2_c
 
 
@@ -633,6 +636,7 @@ def test_poplast():
 
 def test_reversed():
     from collections import OrderedDict
+
     for items in _ITEMSETS:
         omd = OMD(items)
         od = OrderedDict(items)
@@ -649,7 +653,7 @@ def test_reversed():
 
 def test_setdefault():
     omd = OMD()
-    assert omd.setdefault('a', 1) == 1
-    assert omd.setdefault('a', 2) == 1
+    assert omd.setdefault("a", 1) == 1
+    assert omd.setdefault("a", 2) == 1
 
-    assert omd.items(multi=True) == [('a', 1)]
+    assert omd.items(multi=True) == [("a", 1)]

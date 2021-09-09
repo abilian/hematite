@@ -1,4 +1,3 @@
-
 class Profile(object):
     default_headers = []
 
@@ -12,5 +11,4 @@ class Profile(object):
 
 
 class HematiteProfile(Profile):  # TODO: naming? DefaultProfile?
-    default_headers = [('User-Agent', 'Hematite/0.6'),
-                       ('Accept-Encoding', 'gzip')]
+    default_headers = [("User-Agent", "Hematite/0.6"), ("Accept-Encoding", "gzip")]

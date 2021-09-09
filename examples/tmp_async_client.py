@@ -1,4 +1,3 @@
-
 from hematite.async_ import join
 from hematite.client import Client
 from hematite.profile import HematiteProfile
@@ -17,16 +16,16 @@ blog.hatnote.com = ?? (tumblr)
 wikipedia.org = Apache + Varnish
 """
 
-DEFAULT_URL = 'https://en.wikipedia.org/wiki/Main_Page'
+DEFAULT_URL = "https://en.wikipedia.org/wiki/Main_Page"
 
 
 def main(url, number, output, do_pdb=False):
     client = Client(profile=HematiteProfile())
     # req = Request('GET', 'http://makuro.org/')
-    #req = Request('GET', 'http://hatnote.com/')
+    # req = Request('GET', 'http://hatnote.com/')
     # req = Request('GET', 'http://blog.hatnote.com/')
 
-    req = Request('GET', url)
+    req = Request("GET", url)
     kwargs = dict(request=req, autoload_body=False, async_=True)
     resp_list = [client.request(**kwargs) for i in range(number)]
     resp = resp_list[0]
@@ -39,25 +38,27 @@ def main(url, number, output, do_pdb=False):
     # import pdb; pdb.set_trace()
     join(resp_list, timeout=1.0)
     print(resp.raw_response.body)
-    if output == '-':
+    if output == "-":
         print(resp.raw_response.body.data)
     elif output:
-        with open(output, 'w') as f:
+        with open(output, "w") as f:
             f.write(resp.raw_response.body.data)
     if do_pdb:
         import pdb
+
         pdb.set_trace()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import argparse
 
     a = argparse.ArgumentParser()
-    a.add_argument('url', nargs='?', default=DEFAULT_URL)
-    a.add_argument('--number', '-n', type=int, default=10)
-    a.add_argument('--output', '-o', default=None,
-                   help='path to output file: "-" means stdout')
-    a.add_argument('--pdb', action='store_true', default=True)
+    a.add_argument("url", nargs="?", default=DEFAULT_URL)
+    a.add_argument("--number", "-n", type=int, default=10)
+    a.add_argument(
+        "--output", "-o", default=None, help='path to output file: "-" means stdout'
+    )
+    a.add_argument("--pdb", action="store_true", default=True)
 
     args = a.parse_args()
 

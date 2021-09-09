@@ -76,7 +76,7 @@ class BaseIODriver(object, metaclass=ABCMeta):
                 peeked = self.read_peek(self.state.amount)
                 next_state = M.HavePeek(value=peeked)
             else:
-                raise RuntimeError('Unknown state {0!r}'.format(self.state))
+                raise RuntimeError("Unknown state {0!r}".format(self.state))
             self.state = self.reader.send(next_state)
         return True
 
@@ -124,13 +124,13 @@ class SocketDriver(BaseIODriver):
     def __init__(self, socket, reader, writer):
         super(SocketDriver, self).__init__(reader=reader, writer=writer)
 
-        self.outbound = self.SocketIO(socket, 'rwb')
+        self.outbound = self.SocketIO(socket, "rwb")
         self.inbound = io.BufferedReader(self.outbound)
         self.socket = socket
 
         self.readline_buffer = []
         self.peek_buffer = []
-        self.write_backlog = ''
+        self.write_backlog = ""
 
     def distinguish_empty(self, io_method, args):
         """Some io.SocketIO methods return the empty string both for
@@ -178,14 +178,15 @@ class SocketDriver(BaseIODriver):
 
     def read_line(self):
         with self.readline_buffer_lock:
-            partial_line = self.distinguish_empty(self.inbound.readline,
-                                                  (core.MAXLINE,))
+            partial_line = self.distinguish_empty(
+                self.inbound.readline, (core.MAXLINE,)
+            )
 
             self.readline_buffer.append(partial_line)
             if not core.LINE_END.search(partial_line):
                 raise core.eagain()
 
-            line = ''.join(self.readline_buffer)
+            line = "".join(self.readline_buffer)
             self.readline_buffer = []
             return line
 
@@ -201,7 +202,7 @@ class SocketDriver(BaseIODriver):
             self.peek_buffer.append(peeked)
             if len(peeked) < amount:
                 raise core.eagain()
-            result = ''.join(self.peek_buffer)
+            result = "".join(self.peek_buffer)
             self.peek_buffer = []
             return result
 
@@ -265,7 +266,6 @@ class SSLSocketDriver(SocketDriver):
 
 
 class BufferedReaderDriver(BaseIODriver):
-
     def __init__(self, raw_request, inbound, outbound):
         self.writer = raw_request.get_writer()
         self.writer_iter = iter(self.writer)

@@ -2,8 +2,17 @@
 
 
 class Cookie(object):
-    def __init__(self, name, value='', max_age=None, expires=None,
-                 path='/', domain=None, secure=None, http_only=False):
+    def __init__(
+        self,
+        name,
+        value="",
+        max_age=None,
+        expires=None,
+        path="/",
+        domain=None,
+        secure=None,
+        http_only=False,
+    ):
         self.name = name
         self.value = value
         self.max_age = max_age
@@ -52,4 +61,4 @@ class CookieStore(object):
 
     def get_cookie_header(self, domain, path, etc):
         cookies = self.get_cookies(domain, path, etc)
-        return '; '.join(['='.join([c.name, c.value]) for c in cookies])
+        return "; ".join(["=".join([c.name, c.value]) for c in cookies])

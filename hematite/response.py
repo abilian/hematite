@@ -16,11 +16,11 @@ class Response(object):
     # TODO: from_request convenience method?
     def __init__(self, status_code, body=None, **kw):
         self.status_code = int(status_code)
-        self.reason = kw.pop('reason', None)
+        self.reason = kw.pop("reason", None)
         if self.reason is None:
-            self.reason = CODE_REASONS.get(self.status_code, '')
-        self._raw_headers = kw.pop('headers', Headers())  # TODO
-        self.http_version = kw.pop('http_version', _DEFAULT_VERSION)
+            self.reason = CODE_REASONS.get(self.status_code, "")
+        self._raw_headers = kw.pop("headers", Headers())  # TODO
+        self.http_version = kw.pop("http_version", _DEFAULT_VERSION)
 
         self._body = body
         self._data = None
@@ -54,20 +54,24 @@ class Response(object):
     @classmethod
     def from_raw_response(cls, raw_resp):
         sl = raw_resp.status_line
-        kw = {'status_code': sl.status_code,
-              'reason': sl.reason,
-              'version': sl.version,
-              'headers': raw_resp.headers,
-              'body': raw_resp.body}
+        kw = {
+            "status_code": sl.status_code,
+            "reason": sl.reason,
+            "version": sl.version,
+            "headers": raw_resp.headers,
+            "body": raw_resp.body,
+        }
         return cls(**kw)
 
     def to_raw_response(self):
         headers = self._get_header_dict()
-        return RawResponse(status_code=self.status_code,
-                           reason=self.reason,
-                           http_version=self.http_version,
-                           headers=headers,
-                           body=self._body)
+        return RawResponse(
+            status_code=self.status_code,
+            reason=self.reason,
+            http_version=self.http_version,
+            headers=headers,
+            body=self._body,
+        )
 
     @classmethod
     def from_bytes(cls, bytestr):

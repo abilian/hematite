@@ -12,6 +12,7 @@ from hematite.raw.datastructures import Headers
 # these two functions are shared by Request and Response. Could use a
 # metaclass maybe, but we'll see.
 
+
 def _init_headers(self):
     self.headers = Headers()
     # plenty of ways to arrange this
@@ -30,7 +31,7 @@ def _init_headers(self):
                 # TODO: this won't catch e.g., Cache-Control + CACHE-CONTROL
                 # in the same preamble/envelope
                 val_list = self._raw_headers.getlist(hname)
-                hval = ','.join(val_list)
+                hval = ",".join(val_list)
             field.__set__(self, hval)
 
 
@@ -39,7 +40,7 @@ def _get_headers(self, drop_empty=True):
     ret = Headers()
     hf_map = self._header_field_map
     for hname, hval in self.headers.items(multi=True):
-        if drop_empty and hval is None or hval == '':
+        if drop_empty and hval is None or hval == "":
             # TODO: gonna need a field.is_empty or something
             continue
         try:
@@ -50,29 +51,30 @@ def _get_headers(self, drop_empty=True):
             ret.add(hname, field.to_bytes(hval))
     return ret
 
+
 ###
 
 
 def quote_header_value(value, quote_token=False):
-    value = str(value)          # TODO: encoding arg!
+    value = str(value)  # TODO: encoding arg!
     if not value or (not quote_token and core.TOKEN.match(value)):
         return value
-    return '"%s"' % value.replace('\\', '\\\\').replace('"', '\\"')
+    return '"%s"' % value.replace("\\", "\\\\").replace('"', '\\"')
 
 
 def unquote_header_value(value):
     # watch out for certain cases with filenames
     if value and value[0] == value[-1] == '"':
         value = value[1:-1]
-        #if not is_filename or value[:2] != '\\\\':
-        return value.replace('\\\\', '\\').replace('\\"', '"')
+        # if not is_filename or value[:2] != '\\\\':
+        return value.replace("\\\\", "\\").replace('\\"', '"')
     return value
 
 
 def default_header_from_bytes(bytestr):
     # TODO: safe to do unquoting once, pre-decode?
     try:
-        return unquote_header_value(bytestr.decode('latin-1'))
+        return unquote_header_value(bytestr.decode("latin-1"))
     except:
         try:
             return unquote_header_value(bytestr)
@@ -81,7 +83,7 @@ def default_header_from_bytes(bytestr):
 
 
 def default_header_to_bytes(val):
-    return str(val).encode('latin-1')
+    return str(val).encode("latin-1")
 
 
 def list_header_from_bytes(val, unquote=True):
@@ -97,7 +99,7 @@ def list_header_from_bytes(val, unquote=True):
 
 
 def list_header_to_bytes(val):
-    return ', '.join([quote_header_value(v) for v in val])
+    return ", ".join([quote_header_value(v) for v in val])
 
 
 def items_header_from_bytes(val, unquote=True, sep=None):
@@ -105,9 +107,9 @@ def items_header_from_bytes(val, unquote=True, sep=None):
     TODO: I think unquote is always true here? values can always be
     quoted.
     """
-    ret, sep = [], sep or ','
+    ret, sep = [], sep or ","
     for item in _list_header_from_bytes(val, sep=sep):
-        key, _part, value = item.partition('=')
+        key, _part, value = item.partition("=")
         if not _part:
             ret.append((key, None))
             continue
@@ -118,18 +120,18 @@ def items_header_from_bytes(val, unquote=True, sep=None):
 
 
 def items_header_to_bytes(items, sep=None):
-    parts, sep = [], sep or ', '
+    parts, sep = [], sep or ", "
     for key, val in items:
-        if val is None or val == '':
+        if val is None or val == "":
             parts.append(key)
         else:
-            parts.append('='.join([str(key), quote_header_value(val)]))
+            parts.append("=".join([str(key), quote_header_value(val)]))
     return sep.join(parts)
 
-_accept_re = re.compile(r'('
-                        r'(?P<media_type>[^,;]+)'
-                        r'(;\s*q='
-                        r'(?P<quality>[^,;]+))?),?')
+
+_accept_re = re.compile(
+    r"(" r"(?P<media_type>[^,;]+)" r"(;\s*q=" r"(?P<quality>[^,;]+))?),?"
+)
 
 
 def accept_header_from_bytes(val):
@@ -147,11 +149,11 @@ def accept_header_from_bytes(val):
     """
     ret = []
     for match in _accept_re.finditer(val):
-        media_type = (match.group('media_type') or '').strip()
+        media_type = (match.group("media_type") or "").strip()
         if not media_type:
             continue
         try:
-            quality = max(min(float(match.group('quality') or 1.0), 1.0), 0.0)
+            quality = max(min(float(match.group("quality") or 1.0), 1.0), 0.0)
         except:
             quality = 0.0
         ret.append((media_type, quality))
@@ -163,9 +165,9 @@ def accept_header_to_bytes(val):
     for mediatype, qval in val:
         cur = mediatype
         if qval != 1.0:
-            cur += ';q=' + str(qval)
+            cur += ";q=" + str(qval)
         parts.append(cur)
-    return ','.join(parts)
+    return ",".join(parts)
 
 
 def content_header_from_bytes(val):
@@ -181,9 +183,9 @@ def content_header_from_bytes(val):
     #  - rollup of asterisk-indexed parts (param continuations) (RFC2231 #3)
     #  - parameter encodings and languages (RFC2231 #4)
     """
-    items = items_header_from_bytes(val, sep=';')
+    items = items_header_from_bytes(val, sep=";")
     if not items:
-        return '', []
+        return "", []
     media_type = items[0][0]
     return media_type, items[1:]
 
@@ -197,12 +199,24 @@ def http_date_from_bytes(date_str):
 
 
 _dayname = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-_monthname = [None,  # Dummy so we can use 1-based month numbers
-              "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-              "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+_monthname = [
+    None,  # Dummy so we can use 1-based month numbers
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+]
 
 
-def http_date_to_bytes(date_val=None, sep=' '):
+def http_date_to_bytes(date_val=None, sep=" "):
     """
     Output an RFC1123-formatted date suitable for the Date header and
     cookies (with sep='-').
@@ -217,34 +231,42 @@ def http_date_to_bytes(date_val=None, sep=' '):
         raise ValueError()  # support other timestamps?
 
     year, month, day, hh, mm, ss, wd, y, z = time_tuple
-    return ("%s, %02d%s%3s%s%4d %02d:%02d:%02d GMT" %
-            (_dayname[wd], day, sep, _monthname[month], sep, year, hh, mm, ss))
+    return "%s, %02d%s%3s%s%4d %02d:%02d:%02d GMT" % (
+        _dayname[wd],
+        day,
+        sep,
+        _monthname[month],
+        sep,
+        year,
+        hh,
+        mm,
+        ss,
+    )
 
 
 def range_spec_from_bytes(bytestr):
     # TODO: is bytes=500 valid? or does it have to be bytes=500-500
-    unit, _, range_str = bytestr.partition('=')
+    unit, _, range_str = bytestr.partition("=")
     unit = unit.strip().lower()
     if not unit:
         return None
     last_end, range_list = 0, []
 
-    for rng in range_str.split(','):
+    for rng in range_str.split(","):
         rng = rng.strip()
-        if '-' not in rng:
-            raise ValueError('invalid byte range specifier: %r' % bytestr)
-        if rng[:1] == '-':
+        if "-" not in rng:
+            raise ValueError("invalid byte range specifier: %r" % bytestr)
+        if rng[:1] == "-":
             if last_end < 0:
-                raise ValueError('invalid byte range specifier: %r' % bytestr)
+                raise ValueError("invalid byte range specifier: %r" % bytestr)
             begin, end, last_end = int(rng), None, -1
         else:
-            begin, _, end = rng.partition('-')
+            begin, _, end = rng.partition("-")
             begin = int(begin)
             if end:
                 end = int(end)
                 if begin > end:
-                    raise ValueError('invalid byte range specifier: %r'
-                                     % bytestr)
+                    raise ValueError("invalid byte range specifier: %r" % bytestr)
             else:
                 end = None
             last_end = end
@@ -254,18 +276,18 @@ def range_spec_from_bytes(bytestr):
 
 def range_spec_to_bytes(val):
     if not val:
-        return ''
+        return ""
     unit, ranges = val
-    ret = str(unit) + '='
+    ret = str(unit) + "="
     range_parts = []
     for begin, end in ranges:
         cur = str(begin)
         if begin >= 0:
-            cur += '-'
+            cur += "-"
         if end is not None:
             cur += str(end)
         range_parts.append(cur)
-    ret += ','.join(range_parts)
+    ret += ",".join(range_parts)
     return ret
 
 
@@ -276,34 +298,35 @@ def content_range_spec_from_bytes(bytestr):
     try:
         unit, resp_range_spec = stripped.split(None, 1)
     except TypeError:
-        raise ValueError('invalid content range spec: %r' % bytestr)
-    resp_range, _, total_length = resp_range_spec.partition('/')
+        raise ValueError("invalid content range spec: %r" % bytestr)
+    resp_range, _, total_length = resp_range_spec.partition("/")
     try:
         total_length = int(total_length)
     except ValueError:
-        if total_length == '*':
+        if total_length == "*":
             pass  # TODO: total_length = None ?
         else:
-            raise ValueError('invalid content range spec: %r (expected int'
-                             ' or "*" for total_length)' % bytestr)
-    begin, _, end = resp_range.partition('-')
+            raise ValueError(
+                "invalid content range spec: %r (expected int"
+                ' or "*" for total_length)' % bytestr
+            )
+    begin, _, end = resp_range.partition("-")
     try:
         begin, end = int(begin), int(end)
     except ValueError:
-        raise ValueError('invalid content range spec: %r (invalid range)'
-                         % bytestr)
+        raise ValueError("invalid content range spec: %r (invalid range)" % bytestr)
     return unit, begin, end, total_length
 
 
 def content_range_spec_to_bytes(val):
     unit, begin, end, total_length = val
-    parts = [unit, ' ']
+    parts = [unit, " "]
     if begin is None:
-        parts.append('*')
+        parts.append("*")
     else:
-        parts.extend([str(begin), '-', str(end)])
-    parts.extend(['/', str(total_length)])
-    return ''.join(parts)
+        parts.extend([str(begin), "-", str(end)])
+    parts.extend(["/", str(total_length)])
+    return "".join(parts)
 
 
 def retry_after_from_bytes(bytestr):
@@ -314,8 +337,10 @@ def retry_after_from_bytes(bytestr):
         try:
             val = http_date_from_bytes(bytestr)
         except:
-            raise ValueError('expected HTTP-date or delta-seconds for'
-                             ' Retry-After, not %r' % bytestr)
+            raise ValueError(
+                "expected HTTP-date or delta-seconds for"
+                " Retry-After, not %r" % bytestr
+            )
     return val
 
 
@@ -338,7 +363,7 @@ def _list_header_from_bytes(bytestr, sep=None):
     (based on urllib2 from the stdlib)
     """
     bytestr = bytestr.strip()
-    res, part, sep = [], '', sep or ','
+    res, part, sep = [], "", sep or ","
 
     escape = quote = False
     for cur in bytestr:
@@ -347,7 +372,7 @@ def _list_header_from_bytes(bytestr, sep=None):
             escape = False
             continue
         if quote:
-            if cur == '\\':
+            if cur == "\\":
                 escape = True
                 continue
             elif cur == '"':
@@ -357,7 +382,7 @@ def _list_header_from_bytes(bytestr, sep=None):
 
         if cur == sep:
             res.append(part)
-            part = ''
+            part = ""
             continue
 
         if cur == '"':
@@ -385,24 +410,24 @@ def _date_tz_from_bytes(data):
     data = data.split()
     # The FWS after the comma after the day-of-week is optional, so search and
     # adjust for this.
-    if data[0].endswith(',') or data[0].lower() in _daynames:
+    if data[0].endswith(",") or data[0].lower() in _daynames:
         # There's a dayname here. Skip it
         del data[0]
     else:
-        i = data[0].rfind(',')
+        i = data[0].rfind(",")
         if i >= 0:
-            data[0] = data[0][i+1:]
+            data[0] = data[0][i + 1 :]
     if len(data) == 3:  # RFC 850 date, deprecated
-        stuff = data[0].split('-')
+        stuff = data[0].split("-")
         if len(stuff) == 3:
             data = stuff + data[1:]
     if len(data) == 4:
         s = data[3]
-        i = s.find('+')
+        i = s.find("+")
         if i > 0:
-            data[3:] = [s[:i], s[i+1:]]
+            data[3:] = [s[:i], s[i + 1 :]]
         else:
-            data.append('')  # Dummy tz
+            data.append("")  # Dummy tz
     if len(data) < 5:
         return None
     data = data[:5]
@@ -415,21 +440,21 @@ def _date_tz_from_bytes(data):
     mm = _monthnames.index(mm) + 1
     if mm > 12:
         mm -= 12
-    if dd[-1] == ',':
+    if dd[-1] == ",":
         dd = dd[:-1]
-    i = yy.find(':')
+    i = yy.find(":")
     if i > 0:
         yy, tm = tm, yy
-    if yy[-1] == ',':
+    if yy[-1] == ",":
         yy = yy[:-1]
     if not yy[0].isdigit():
         yy, tz = tz, yy
-    if tm[-1] == ',':
+    if tm[-1] == ",":
         tm = tm[:-1]
-    tm = tm.split(':')
+    tm = tm.split(":")
     if len(tm) == 2:
         [thh, tmm] = tm
-        tss = '0'
+        tss = "0"
     elif len(tm) == 3:
         [thh, tmm, tss] = tm
     else:
@@ -471,12 +496,34 @@ def _date_tz_from_bytes(data):
     return yy, mm, dd, thh, tmm, tss, 0, 1, -1, tzoffset
 
 
-_monthnames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul',
-               'aug', 'sep', 'oct', 'nov', 'dec',
-               'january', 'february', 'march', 'april', 'may', 'june', 'july',
-               'august', 'september', 'october', 'november', 'december']
+_monthnames = [
+    "jan",
+    "feb",
+    "mar",
+    "apr",
+    "may",
+    "jun",
+    "jul",
+    "aug",
+    "sep",
+    "oct",
+    "nov",
+    "dec",
+    "january",
+    "february",
+    "march",
+    "april",
+    "may",
+    "june",
+    "july",
+    "august",
+    "september",
+    "october",
+    "november",
+    "december",
+]
 
-_daynames = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
+_daynames = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
 
 # The timezone table does not include the military time zones defined
 # in RFC822, other than Z.  According to RFC1123, the description in
@@ -485,13 +532,22 @@ _daynames = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
 # instead of timezone names.
 
 
-_timezones = {'UT': 0, 'UTC': 0, 'GMT': 0, 'Z': 0,
-              'AST': -400, 'ADT': -300,  # Atlantic (used in Canada)
-              'EST': -500, 'EDT': -400,  # Eastern
-              'CST': -600, 'CDT': -500,  # Central
-              'MST': -700, 'MDT': -600,  # Mountain
-              'PST': -800, 'PDT': -700   # Pacific
-              }
+_timezones = {
+    "UT": 0,
+    "UTC": 0,
+    "GMT": 0,
+    "Z": 0,
+    "AST": -400,
+    "ADT": -300,  # Atlantic (used in Canada)
+    "EST": -500,
+    "EDT": -400,  # Eastern
+    "CST": -600,
+    "CDT": -500,  # Central
+    "MST": -700,
+    "MDT": -600,  # Mountain
+    "PST": -800,
+    "PDT": -700,  # Pacific
+}
 
 
 def total_seconds(td):

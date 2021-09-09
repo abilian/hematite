@@ -16,7 +16,7 @@ from hematite.profile import HematiteProfile
 
 class ConnectionError(Exception):  # TODO: maybe inherit from socket.error?
     def __init__(self, *a, **kw):
-        self.socket_error = kw.pop('socket_error', None)
+        self.socket_error = kw.pop("socket_error", None)
         super(ConnectionError, self).__init__(*a, **kw)
 
     def __str__(self):
@@ -25,7 +25,7 @@ class ConnectionError(Exception):  # TODO: maybe inherit from socket.error?
     def __repr__(self):
         cn = self.__class__.__name__
         if self.socket_error:
-            return '%s(%r)' % (cn, self.socket_error)
+            return "%s(%r)" % (cn, self.socket_error)
         return super(ConnectionError, self).__repr__()
 
 
@@ -42,8 +42,16 @@ class RequestTimeout(Exception):
 
 
 DEFAULT_TIMEOUT = 10.0
-CLIENT_METHODS = ['GET', 'HEAD', 'POST', 'PUT', 'DELETE',
-                  'TRACE', 'OPTIONS', 'PATCH']  # CONNECT intentionally omitted
+CLIENT_METHODS = [
+    "GET",
+    "HEAD",
+    "POST",
+    "PUT",
+    "DELETE",
+    "TRACE",
+    "OPTIONS",
+    "PATCH",
+]  # CONNECT intentionally omitted
 
 
 class ClientOperation(object):
@@ -73,12 +81,12 @@ class UnboundClientOperation(object):
 
     def __repr__(self):
         cn = self.__class__.__name__
-        return '%s(method=%r)' % (cn, self.method)
+        return "%s(method=%r)" % (cn, self.method)
 
 
 def lookup_url(url):
     host = url.host
-    port = url.port or (443 if url.scheme.lower() == 'https' else 80)
+    port = url.port or (443 if url.scheme.lower() == "https" else 80)
 
     # here we use the value of url.family to indicate whether host
     # is already an IP or not. the user might have mucked with
@@ -86,11 +94,13 @@ def lookup_url(url):
     if url.family is None:
         # assuming TCP ;P
         # big wtf: no kwargs on getaddrinfo
-        addrinfos = socket.getaddrinfo(host,
-                                       port,
-                                       socket.AF_UNSPEC,  # v4/v6
-                                       socket.SOCK_STREAM,
-                                       socket.IPPROTO_TCP)
+        addrinfos = socket.getaddrinfo(
+            host,
+            port,
+            socket.AF_UNSPEC,  # v4/v6
+            socket.SOCK_STREAM,
+            socket.IPPROTO_TCP,
+        )
         # TODO: configurable behavior on multiple returns?
         # TODO: (cont.) set preference for IPv4/v6
 
@@ -104,7 +114,7 @@ def lookup_url(url):
         # TODO: how to handle flowinfo, scopeid here? is None even valid?
         ret = (url.family, socket.SOCK_STREAM, host, port, None, None)
     else:
-        raise ValueError('invalid family on url: %r' % url)
+        raise ValueError("invalid family on url: %r" % url)
 
     # NOTE: it'd be cool to just return an unconnected socket
     # here, but even unconnected sockets use fds
@@ -142,7 +152,7 @@ class Client(object):
 
         ret = socket.socket(family, socktype)
 
-        is_ssl = request.host_url.scheme.lower() == 'https'
+        is_ssl = request.host_url.scheme.lower() == "https"
         if nonblocking:
             ret.setblocking(0)
         if is_ssl:
@@ -154,23 +164,25 @@ class Client(object):
             conn_res = se.args[0]
 
         if conn_res:
-            if conn_res not in (errno.EISCONN, errno.EWOULDBLOCK,
-                                errno.EINPROGRESS, errno.EALREADY):
-                socket.error('Unknown', conn_res)
+            if conn_res not in (
+                errno.EISCONN,
+                errno.EWOULDBLOCK,
+                errno.EINPROGRESS,
+                errno.EALREADY,
+            ):
+                socket.error("Unknown", conn_res)
 
         # djb points out that some socket error conditions are only
         # visible with this 'one weird old trick'
         err = ret.getsockopt(socket.SOL_SOCKET, socket.SO_ERROR)
         if err:
-            raise socket.error('Unknown', err)
+            raise socket.error("Unknown", err)
 
         return ret
 
-    def request(self,
-                request,
-                async_=False,
-                autoload_body=True,
-                timeout=DEFAULT_TIMEOUT):
+    def request(
+        self, request, async_=False, autoload_body=True, timeout=DEFAULT_TIMEOUT
+    ):
         # TODO: kwargs for raise_exc, follow_redirects
         kw = dict(client=self, request=request, autoload_body=autoload_body)
         client_resp = ClientResponse(**kw)
@@ -178,16 +190,23 @@ class Client(object):
             return client_resp
         async_join([client_resp], timeout=timeout)
         if not client_resp.is_complete:
-            raise RequestTimeout('request did not complete within %s seconds'
-                                 % timeout)
+            raise RequestTimeout("request did not complete within %s seconds" % timeout)
         return client_resp
 
 
 class _OldState(object):
     # TODO: ssl_connect?
 
-    (NotStarted, LookupHost, Connect, SendRequestHeaders, SendRequestBody,
-     ReceiveResponseHeaders, ReceiveResponseBody, Complete) = list(range(8))
+    (
+        NotStarted,
+        LookupHost,
+        Connect,
+        SendRequestHeaders,
+        SendRequestBody,
+        ReceiveResponseHeaders,
+        ReceiveResponseBody,
+        Complete,
+    ) = list(range(8))
 
     # Alternate schemes:
     #
@@ -204,8 +223,10 @@ class _OldState(object):
 class _State(object):
     # TODO: Securing/Handshaking
     # TODO: WaitingForContinue  # 100 Continue that is
-    (NotStarted, ResolvingHost, Connecting, Sending, Receiving,
-     Complete) = list(range(6))
+    (NotStarted, ResolvingHost, Connecting, Sending, Receiving, Complete) = list(
+        range(6)
+    )
+
 
 """RawRequest conversion paradigms:
 
@@ -230,17 +251,17 @@ class ClientResponse(object):
         self.state = _State.NotStarted
         self.socket = None
         self.driver = None
-        self.timings = {'created': time.time()}
+        self.timings = {"created": time.time()}
         # TODO: need to set error and Complete state on errors
         self.error = None
 
         self.response = None
         self.raw_response = None
 
-        self.autoload_body = kwargs.pop('autoload_body', True)
-        self.nonblocking = kwargs.pop('nonblocking', False)
-        self.timeout = kwargs.pop('timeout', None)
-        self.follow_redirects = kwargs.pop('follow_redirects', None)
+        self.autoload_body = kwargs.pop("autoload_body", True)
+        self.nonblocking = kwargs.pop("nonblocking", False)
+        self.timeout = kwargs.pop("timeout", None)
+        self.follow_redirects = kwargs.pop("follow_redirects", None)
         if self.follow_redirects is True:
             self.follow_redirects = 3  # TODO: default limit?
 
@@ -257,7 +278,7 @@ class ClientResponse(object):
         elif isinstance(request, Request):
             self.raw_request = request.to_raw_request()
         else:
-            raise TypeError('expected request to be a Request or RawRequest')
+            raise TypeError("expected request to be a Request or RawRequest")
 
     def execute(self):
         while True:
@@ -276,11 +297,11 @@ class ClientResponse(object):
     @property
     def norm_timings(self):
         t = self.timings
-        return dict([(k, v - t['created']) for (k, v) in list(t.items())])
+        return dict([(k, v - t["created"]) for (k, v) in list(t.items())])
 
     @property
     def semantic_state(self):
-        return ('TBI', 'TBI details')
+        return ("TBI", "TBI details")
 
     @property
     def is_complete(self):
@@ -312,7 +333,7 @@ class ClientResponse(object):
         if self.error:
             return False
         if self.raw_request is None:
-            raise ValueError('request not set')
+            raise ValueError("request not set")
         state, request = self.state, self.raw_request
 
         # TODO: BlockingIOErrors for DNS/connect?
@@ -320,27 +341,27 @@ class ClientResponse(object):
         try:
             if state is _State.NotStarted:
                 self.state += 1
-                self.timings['started'] = time.time()
+                self.timings["started"] = time.time()
             elif state is _State.ResolvingHost:
                 self.addrinfo = self.client.get_addrinfo(request)
                 self.state += 1
-                self.timings['host_resolved'] = time.time()
+                self.timings["host_resolved"] = time.time()
             elif state is _State.Connecting:
-                self.socket = self.client.get_socket(request,
-                                                     self.addrinfo,
-                                                     self.nonblocking)
+                self.socket = self.client.get_socket(
+                    request, self.addrinfo, self.nonblocking
+                )
                 writer = self.raw_request.get_writer()
-                self.driver = SSLSocketDriver(self.socket,
-                                              reader=ResponseReader(),
-                                              writer=writer)
+                self.driver = SSLSocketDriver(
+                    self.socket, reader=ResponseReader(), writer=writer
+                )
                 self.state += 1
-                self.timings['connected'] = time.time()
+                self.timings["connected"] = time.time()
             elif state is _State.Sending:
                 if self.driver.write():
                     self.state += 1
-                    self.timings['sent'] = time.time()
+                    self.timings["sent"] = time.time()
             else:
-                raise RuntimeError('not in a writable state: %r' % state)
+                raise RuntimeError("not in a writable state: %r" % state)
         except BlockingIOError:
             return False
         except Exception as e:
@@ -358,15 +379,15 @@ class ClientResponse(object):
         try:
             if state is _State.Receiving:
                 self.raw_response = self.driver.reader.raw_response
-                self.timings['first_read'] = time.time()
+                self.timings["first_read"] = time.time()
                 res = self.driver.read()
                 if res:
                     self.state += 1
-                    self.timings['complete'] = time.time()
+                    self.timings["complete"] = time.time()
                     resp = Response.from_raw_response(self.raw_response)
                     self.response = resp
             else:
-                raise RuntimeError('not in a readable state: %r' % state)
+                raise RuntimeError("not in a readable state: %r" % state)
         except BlockingIOError:
             return False
         except Exception as e:

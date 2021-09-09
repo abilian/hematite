@@ -52,42 +52,44 @@ http://example.com/\uFEFF/foo  s:http h:example.com p:/%EF%BB%BF/foo
 http://example.com/\u202E/foo/\u202D/bar  s:http h:example.com p:/%E2%80%AE/foo/%E2%80%AD/bar
 """
 
-RES_FIELD_MAP = {'s': 'scheme',
-                 'h': 'host',
-                 'p': 'path',
-                 'port': 'port',
-                 'q': 'query',
-                 'f': 'fragment'}
+RES_FIELD_MAP = {
+    "s": "scheme",
+    "h": "host",
+    "p": "path",
+    "port": "port",
+    "q": "query",
+    "f": "fragment",
+}
 
 
 def parse_test(test_str):
-    input_str, _, result_str = test_str.partition('  ')
+    input_str, _, result_str = test_str.partition("  ")
     if not result_str:
         return None  # failed test or invalid format
     rfs = result_str.split()
     results = {}  # 'scheme': rfs[0]}
     for field in rfs:
-        name, _, value = field.partition(':')
+        name, _, value = field.partition(":")
         results[RES_FIELD_MAP[name]] = value
-    results['input'] = input_str
+    results["input"] = input_str
     return results
 
 
 def run_url_tests(data=TEST_DATA):
     for line in TEST_DATA.splitlines():
-        if not line or line.startswith('#'):
+        if not line or line.startswith("#"):
             continue
 
         parsed_test = parse_test(line)
-        url = URL(parsed_test['input'])
+        url = URL(parsed_test["input"])
         print(parsed_test, url)
         for k, v in list(parsed_test.items()):
-            if k == 'input':
+            if k == "input":
                 continue
             url_value = getattr(url, k, None)
             if url_value is not None:
-                print('-', k, v, url_value)
+                print("-", k, v, url_value)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     run_url_tests()

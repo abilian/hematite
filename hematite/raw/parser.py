@@ -69,7 +69,7 @@ class InvalidChunk(BodyReadException):
     """Raised when a parse error occurs while consuming a chunk"""
 
 
-class HTTPVersion(namedtuple('HTTPVersion', 'major minor'), BytestringHelper):
+class HTTPVersion(namedtuple("HTTPVersion", "major minor"), BytestringHelper):
     """Represents an HTTP version (RFC2616 3.1).
 
     This is a :class:`~collections.namedtuple`, so versions can be
@@ -79,13 +79,13 @@ class HTTPVersion(namedtuple('HTTPVersion', 'major minor'), BytestringHelper):
     True
 
     """
-    PARSE_VERSION = re.compile('HTTP/'
-                               '(?P<http_major_version>\d+)'
-                               '\.'
-                               '(?P<http_minor_version>\d+)')
+
+    PARSE_VERSION = re.compile(
+        "HTTP/" "(?P<http_major_version>\d+)" "\." "(?P<http_minor_version>\d+)"
+    )
 
     def to_bytes(self):
-        return b'HTTP/%d.%d' % self
+        return b"HTTP/%d.%d" % self
 
     @classmethod
     def from_match(cls, match):
@@ -95,12 +95,12 @@ class HTTPVersion(namedtuple('HTTPVersion', 'major minor'), BytestringHelper):
         want :meth:`HTTPVersion.from_bytes` instead
         """
         if not match:
-            raise InvalidVersion('Missing version string')
-        major = match.group('http_major_version')
-        minor = match.group('http_minor_version')
+            raise InvalidVersion("Missing version string")
+        major = match.group("http_major_version")
+        minor = match.group("http_minor_version")
 
         if not (major or minor):
-            raise InvalidVersion('Unparseable version', match.string)
+            raise InvalidVersion("Unparseable version", match.string)
 
         return cls(int(major), int(minor))
 
@@ -115,20 +115,33 @@ class HTTPVersion(namedtuple('HTTPVersion', 'major minor'), BytestringHelper):
         return cls.from_match(cls.PARSE_VERSION.search(string))
 
 
-class StatusLine(namedtuple('StatusLine', 'version status_code reason'),
-                 BytestringHelper):
+class StatusLine(
+    namedtuple("StatusLine", "version status_code reason"), BytestringHelper
+):
     """
     Represents an HTTP Status-Line (RFC2616 6.1).
     """
 
-    PARSE_STATUS_LINE = re.compile(''.join([
-        '(?:', HTTPVersion.PARSE_VERSION.pattern, ')?',
-        '(?:', core.START_LINE_SEP.pattern, ')?',
-        '(?P<status_code>\d{3})?',
-        '(?:', core.START_LINE_SEP.pattern,
-        # 6.1: No CR or LF is allowed except in the final CRLF
-        # sequence.
-        '(?P<reason>[^', re.escape(core._TEXT_EXCLUDE), '\r\n]+))?']))
+    PARSE_STATUS_LINE = re.compile(
+        "".join(
+            [
+                "(?:",
+                HTTPVersion.PARSE_VERSION.pattern,
+                ")?",
+                "(?:",
+                core.START_LINE_SEP.pattern,
+                ")?",
+                "(?P<status_code>\d{3})?",
+                "(?:",
+                core.START_LINE_SEP.pattern,
+                # 6.1: No CR or LF is allowed except in the final CRLF
+                # sequence.
+                "(?P<reason>[^",
+                re.escape(core._TEXT_EXCLUDE),
+                "\r\n]+))?",
+            ]
+        )
+    )
 
     def to_bytes(self):
         r"""Return a byte string representing this status line.  If
@@ -151,9 +164,9 @@ class StatusLine(namedtuple('StatusLine', 'version status_code reason'),
             reason = CODE_REASONS.get(status_code)
 
         if reason:
-            reason = ' ' + reason
+            reason = " " + reason
 
-        return b'%s %d%s' % (version, status_code, reason)
+        return b"%s %d%s" % (version, status_code, reason)
 
     @classmethod
     def from_match(cls, match):
@@ -165,16 +178,15 @@ class StatusLine(namedtuple('StatusLine', 'version status_code reason'),
         version = HTTPVersion.from_match(match)
 
         if not match:
-            raise InvalidStatusLine('Missing status line')
+            raise InvalidStatusLine("Missing status line")
 
-        raw_status_code = match.group('status_code')
+        raw_status_code = match.group("status_code")
         if not raw_status_code:
-            raise InvalidStatusCode('Could not retrieve status code',
-                                    match.string)
+            raise InvalidStatusCode("Could not retrieve status code", match.string)
 
-        status_code = int(match.group('status_code'))
+        status_code = int(match.group("status_code"))
 
-        reason = match.group('reason')
+        reason = match.group("reason")
         if not reason:
             reason = CODE_REASONS.get(status_code)
 
@@ -196,25 +208,37 @@ class StatusLine(namedtuple('StatusLine', 'version status_code reason'),
         """
         match = cls.PARSE_STATUS_LINE.match(line)
         if not match:
-            raise InvalidStatusLine('Could not parse status line', line)
+            raise InvalidStatusLine("Could not parse status line", line)
         if expect_newline:
-            if not core.LINE_END.match(line[match.end():]):
-                raise InvalidStatusLine('status line did not end with [CR]LF')
+            if not core.LINE_END.match(line[match.end() :]):
+                raise InvalidStatusLine("status line did not end with [CR]LF")
         return cls.from_match(match)
 
 
-class RequestLine(namedtuple('RequestLine', 'method url version'),
-                  BytestringHelper):
+class RequestLine(namedtuple("RequestLine", "method url version"), BytestringHelper):
     """
     Represents an HTTP Request-Line (RFC2616 5.1)
     """
 
-    PARSE_REQUEST_LINE = re.compile(''.join([
-        '(?P<method>', core.TOKEN.pattern, ')?',
-        '(?:', core.START_LINE_SEP.pattern, ')?',
-        '(?P<url>' + _ABS_PATH_RE + ')?',
-        '(?:', core.START_LINE_SEP.pattern, ')?',
-        '(?:', HTTPVersion.PARSE_VERSION.pattern, ')?']))
+    PARSE_REQUEST_LINE = re.compile(
+        "".join(
+            [
+                "(?P<method>",
+                core.TOKEN.pattern,
+                ")?",
+                "(?:",
+                core.START_LINE_SEP.pattern,
+                ")?",
+                "(?P<url>" + _ABS_PATH_RE + ")?",
+                "(?:",
+                core.START_LINE_SEP.pattern,
+                ")?",
+                "(?:",
+                HTTPVersion.PARSE_VERSION.pattern,
+                ")?",
+            ]
+        )
+    )
 
     def to_bytes(self):
         """Return a byte string representing this request line without the
@@ -225,24 +249,24 @@ class RequestLine(namedtuple('RequestLine', 'method url version'),
         ...             version=HTTPVersion(1, 1)).to_bytes()
         'GET / HTTP/1.1'
         """
-        return b'%s %s %s' % self
+        return b"%s %s %s" % self
 
     @classmethod
     def from_match(cls, match):
         """Create a :class:`RequestLine` from a :class:`re.match` object.
 
         This is intended for use within other parsers.  You probably
-        want :meth:`RequestLine.from_bytes` instead. """
+        want :meth:`RequestLine.from_bytes` instead."""
         if not match:
-            raise InvalidRequestLine('Missing status line')
+            raise InvalidRequestLine("Missing status line")
 
-        method = match.group('method')
+        method = match.group("method")
         if not method:
-            raise InvalidMethod('Could not parse method', match.string)
+            raise InvalidMethod("Could not parse method", match.string)
 
-        raw_url = match.group('url')
+        raw_url = match.group("url")
         if not raw_url:
-            raise InvalidURI('Could not parse URI', match.string)
+            raise InvalidURI("Could not parse URI", match.string)
 
         url = URL(raw_url, strict=True)
 
@@ -271,15 +295,15 @@ class RequestLine(namedtuple('RequestLine', 'method url version'),
         """
         match = cls.PARSE_REQUEST_LINE.match(line)
         if not match:
-            raise InvalidRequestLine('Could not parse request line', line)
+            raise InvalidRequestLine("Could not parse request line", line)
         if expect_newline:
-            if not core.LINE_END.match(line[match.end():]):
-                raise InvalidStatusLine('request line did not end with [CR]LF')
+            if not core.LINE_END.match(line[match.end() :]):
+                raise InvalidStatusLine("request line did not end with [CR]LF")
         return cls.from_match(match)
 
 
 class _ProtocolElement(object):
-    _fields = ('state',)
+    _fields = ("state",)
     state = M.Empty
 
     @property
@@ -289,9 +313,10 @@ class _ProtocolElement(object):
     def __repr__(self):
         cn = self.__class__.__name__
         fields = self._fields
-        fields_and_values = ['{0}={1!r}'.format(field, getattr(self, field))
-                             for field in fields]
-        return '<{0} {1}>'.format(cn, ', '.join(fields_and_values))
+        fields_and_values = [
+            "{0}={1!r}".format(field, getattr(self, field)) for field in fields
+        ]
+        return "<{0} {1}>".format(cn, ", ".join(fields_and_values))
 
 
 class Reader(_ProtocolElement, metaclass=ABCMeta):
@@ -333,11 +358,11 @@ class Writer(_ProtocolElement, metaclass=ABCMeta):
 
 
 class HeadersReader(Reader):
-    ISCONTINUATION = re.compile('^[' + re.escape(''.join(set(core._LWS) -
-                                                         set(core._CRLF)))
-                                + ']')
+    ISCONTINUATION = re.compile(
+        "^[" + re.escape("".join(set(core._LWS) - set(core._CRLF))) + "]"
+    )
     # TODO: may also want to track Trailer, Expect, Upgrade?
-    _fields = Reader._fields + ('headers',)
+    _fields = Reader._fields + ("headers",)
 
     def __init__(self, headers=None, *args, **kwargs):
         super(HeadersReader, self).__init__(*args, **kwargs)
@@ -351,7 +376,7 @@ class HeadersReader(Reader):
         for line in bstr.splitlines(True):
             instance.reader.send(M.HaveLine(line))
         if not instance.complete:
-            raise InvalidHeaders('Missing header termination')
+            raise InvalidHeaders("Missing header termination")
         return instance
 
     def _make_reader(self):
@@ -362,8 +387,9 @@ class HeadersReader(Reader):
             assert t == M.HaveLine.type
 
             if not line:
-                raise InvalidHeaders('Cannot find header termination; '
-                                     'connection closed')
+                raise InvalidHeaders(
+                    "Cannot find header termination; " "connection closed"
+                )
 
             if core.LINE_END.match(line):
                 break
@@ -372,23 +398,24 @@ class HeadersReader(Reader):
 
             if self.ISCONTINUATION.match(line):
                 if prev_key is _MISSING:
-                    raise InvalidHeaders('Cannot begin with a continuation',
-                                         line)
+                    raise InvalidHeaders("Cannot begin with a continuation", line)
                 last_value = self.headers.poplast(prev_key)
                 key, value = prev_key, last_value + line.rstrip()
             else:
-                key, _, value = line.partition(':')
+                key, _, value = line.partition(":")
                 key, value = key.strip(), value.strip()
                 if not core.TOKEN.match(key):
-                    raise InvalidHeaders('Invalid field name', key)
+                    raise InvalidHeaders("Invalid field name", key)
 
                 prev_key = key
 
             self.headers.add(key, value)
         else:
-            raise InvalidHeaders('Consumed limit of {0} bytes '
-                                 'without finding '
-                                 ' headers'.format(core.MAXHEADERBYTES))
+            raise InvalidHeaders(
+                "Consumed limit of {0} bytes "
+                "without finding "
+                " headers".format(core.MAXHEADERBYTES)
+            )
         # TODO trailers
         self.state = M.Complete
         while True:
@@ -396,22 +423,20 @@ class HeadersReader(Reader):
 
 
 class HeadersWriter(Writer):
-
     def __init__(self, headers, *args, **kwargs):
         super(HeadersWriter, self).__init__(*args, **kwargs)
         self.headers = headers
 
     def _make_writer(self):
-        for k, v in self.headers.iteritems(multi=True,
-                                           preserve_case=True):
-            line = b': '.join([bytes(k), bytes(v)]) + b'\r\n'
+        for k, v in self.headers.iteritems(multi=True, preserve_case=True):
+            line = b": ".join([bytes(k), bytes(v)]) + b"\r\n"
 
             state = M.HaveLine(line)
             self.state = state
             self.bytes_written += len(line)
             yield state
 
-        state = M.HaveLine(b'\r\n')
+        state = M.HaveLine(b"\r\n")
         self.state = state
         self.bytes_written += 2
         yield state
@@ -430,9 +455,9 @@ class IdentityEncodedBodyReader(Reader):
         super(IdentityEncodedBodyReader, self).__init__(*args, **kwargs)
 
     def _make_reader(self):
-        self.bytes_remaining = (self.DEFAULT_AMOUNT
-                                if self.content_length is None
-                                else self.content_length)
+        self.bytes_remaining = (
+            self.DEFAULT_AMOUNT if self.content_length is None else self.content_length
+        )
 
         def _stop():
             self.body.complete(self.bytes_read)
@@ -450,15 +475,16 @@ class IdentityEncodedBodyReader(Reader):
                     _stop()
                     break
 
-                raise IncompleteBody('Could not read remaining {0} '
-                                     'bytes'.format(self.bytes_remaining))
+                raise IncompleteBody(
+                    "Could not read remaining {0} " "bytes".format(self.bytes_remaining)
+                )
 
             self.bytes_read += amount
 
             self.body.data_received(read)
 
             if self.content_length is not None:
-                self.bytes_remaining = (self.content_length - self.bytes_read)
+                self.bytes_remaining = self.content_length - self.bytes_read
 
             if self.bytes_remaining <= 0:
                 _stop()
@@ -468,7 +494,6 @@ class IdentityEncodedBodyReader(Reader):
 
 
 class IdentityEncodedBodyWriter(Writer):
-
     def __init__(self, body, content_length=None, *args, **kwargs):
         super(IdentityEncodedBodyWriter, self).__init__(*args, **kwargs)
         self.body = body
@@ -482,7 +507,7 @@ class IdentityEncodedBodyWriter(Writer):
             yield self.state
 
         # TODO: this logic should go elsewhere
-        #if self.content_length is None:
+        # if self.content_length is None:
         #    self.state = M.WantDisconnect
         #    yield self.state
 
@@ -492,7 +517,7 @@ class IdentityEncodedBodyWriter(Writer):
 
 
 class ChunkEncodedBodyReader(Reader):
-    IS_HEX = re.compile('([\dA-Ha-h]+)[\t ]*' + core.LINE_END.pattern)
+    IS_HEX = re.compile("([\dA-Ha-h]+)[\t ]*" + core.LINE_END.pattern)
 
     def __init__(self, body, *args, **kwargs):
         self.body = body
@@ -513,21 +538,19 @@ class ChunkEncodedBodyReader(Reader):
             assert t == M.HaveLine.type
 
             if not chunk_header:
-                raise InvalidChunk('Could not read chunk header: Disconnected')
+                raise InvalidChunk("Could not read chunk header: Disconnected")
             if not IS_HEX.match(chunk_header):
-                raise InvalidChunk('Could not read chunk header', chunk_header)
+                raise InvalidChunk("Could not read chunk header", chunk_header)
 
             # trailing CRLF?
             self.chunk_length = int(chunk_header, 16)
 
             if self.chunk_length > MAXCHUNK:
-                raise InvalidChunk('Requested too large a chunk',
-                                   self.chunk_length)
+                raise InvalidChunk("Requested too large a chunk", self.chunk_length)
 
-            last = ''
+            last = ""
             while self.chunk_read < self.chunk_length:
-                self.state = M.NeedData(amount=self.chunk_length
-                                        - self.chunk_read)
+                self.state = M.NeedData(amount=self.chunk_length - self.chunk_read)
                 t, last = yield self.state
                 assert t == M.HaveData.type
 
@@ -538,7 +561,7 @@ class ChunkEncodedBodyReader(Reader):
                 self.bytes_read += len(last)
                 self.chunk_partials.append(last)
 
-            chunk = ''.join(self.chunk_partials)
+            chunk = "".join(self.chunk_partials)
 
             self.state = M.NeedPeek(amount=2)
             t, peek = yield self.state
@@ -546,13 +569,13 @@ class ChunkEncodedBodyReader(Reader):
 
             cr, lf = peek[:2]
 
-            if cr == '\r' and lf == '\n':
+            if cr == "\r" and lf == "\n":
                 discard = 2
-            elif cr == '\n':
+            elif cr == "\n":
                 # lf is not actually lf, but real data
                 discard = 1
             else:
-                raise InvalidChunk('No trailing CRLF|LF', chunk)
+                raise InvalidChunk("No trailing CRLF|LF", chunk)
 
             self.state = M.NeedData(amount=discard)
             t, data = yield self.state
@@ -571,26 +594,22 @@ class ChunkEncodedBodyReader(Reader):
 
 
 class ChunkEncodedBodyWriter(Writer):
-
     def __init__(self, body, *args, **kwargs):
         self.body = body
         super(ChunkEncodedBodyWriter, self).__init__(*args, **kwargs)
 
     def _make_writer(self):
         for chunk in self.body.send_chunk():
-            header = '%x\r\n' % len(chunk)
+            header = "%x\r\n" % len(chunk)
 
-            for state in (M.HaveLine(header),
-                          M.HaveData(chunk),
-                          M.HaveLine('\r\n')):
+            for state in (M.HaveLine(header), M.HaveData(chunk), M.HaveLine("\r\n")):
                 self.state = state
                 yield self.state
 
         # maybe we got an empty chunk; if so, don't send an additional
         # end chunk
         if chunk:
-            for state in (M.HaveLine('0\r\n'),
-                          M.HaveLine('\r\n')):
+            for state in (M.HaveLine("0\r\n"), M.HaveLine("\r\n")):
                 self.state = state
                 yield self.state
 
@@ -598,7 +617,6 @@ class ChunkEncodedBodyWriter(Writer):
 
 
 class RequestWriter(Writer):
-
     def __init__(self, request_line, headers, body=None, *args, **kwargs):
         self.request_line = request_line
         self.headers = headers
@@ -606,7 +624,7 @@ class RequestWriter(Writer):
         super(RequestWriter, self).__init__(*args, **kwargs)
 
     def _make_writer(self):
-        rl = bytes(self.request_line) + '\r\n'
+        rl = bytes(self.request_line) + "\r\n"
         self.bytes_written += len(rl)
         self.state = M.HaveLine(rl)
         yield self.state
@@ -629,6 +647,7 @@ class RequestWriter(Writer):
 class RequestReader(Reader):
     def __init__(self, *args, **kwargs):
         from hematite.raw.request import RawRequest  # TODO TODO
+
         self.raw_request = RawRequest()
 
         self.headers_reader = HeadersReader()
@@ -651,7 +670,7 @@ class RequestReader(Reader):
         # beginning of a message and receives a CRLF first, it
         # should ignore the CRLF.
 
-        line = '\r\n'
+        line = "\r\n"
         while LINE_END.match(line):
             t, line = yield self.state
             assert t == M.HaveLine.type
@@ -683,7 +702,7 @@ class ResponseWriter(Writer):
         super(ResponseWriter, self).__init__(*args, **kwargs)
 
     def _make_writer(self):
-        sl = bytes(self.status_line) + '\r\n'
+        sl = bytes(self.status_line) + "\r\n"
         self.bytes_written += len(sl)
         self.state = M.HaveLine(sl)
         yield self.state
@@ -705,54 +724,54 @@ class ResponseWriter(Writer):
         self.state = M.Complete
 
 
-MessageTraits = namedtuple('MessageTraits', ['chunked',
-                                             'content_length',
-                                             'connection_close',
-                                             'decompression'])
+MessageTraits = namedtuple(
+    "MessageTraits", ["chunked", "content_length", "connection_close", "decompression"]
+)
 
 
 def parse_message_traits(headers_dict):
     # TODO - WE NEED REAL PARSING LOGIC HERE
     hd = headers_dict
-    content_length = hd.get('content-length')
+    content_length = hd.get("content-length")
     if content_length:
         content_length = int(content_length)
-    connection_close = hd.get('connection', '').lower() == 'close'
+    connection_close = hd.get("connection", "").lower() == "close"
     try:
         # NB: items_header_from_bytes doesn't split on ; which
         # transfer-codings expect (RFC2616 3.6)
-        tencodings = [te
-                      for te_kvs in hd.getlist('transfer-encoding')
-                      for te, _ in items_header_from_bytes(te_kvs)]
+        tencodings = [
+            te
+            for te_kvs in hd.getlist("transfer-encoding")
+            for te, _ in items_header_from_bytes(te_kvs)
+        ]
     except KeyError:
         tencodings = []
 
-    chunked = any([te.strip().lower().startswith('chunked')
-                   for te in tencodings])
+    chunked = any([te.strip().lower().startswith("chunked") for te in tencodings])
 
     # WRONG - CAN BE MULTIPLE
     #
     # 14.11
     # Content-Encoding  = "Content-Encoding" ":" 1#content-coding
-    content_encodings = hd.get('content-encoding', '')
-    content_encodings = [ce
-                         for ce in
-                         _list_header_from_bytes(content_encodings)]
+    content_encodings = hd.get("content-encoding", "")
+    content_encodings = [ce for ce in _list_header_from_bytes(content_encodings)]
 
     decompression = None
-    if content_encodings and content_encodings[-1] in ('gzip', 'deflate'):
+    if content_encodings and content_encodings[-1] in ("gzip", "deflate"):
         decompression = content_encodings[-1]
 
-    return MessageTraits(chunked=chunked,
-                         content_length=content_length,
-                         connection_close=connection_close,
-                         decompression=decompression)
+    return MessageTraits(
+        chunked=chunked,
+        content_length=content_length,
+        connection_close=connection_close,
+        decompression=decompression,
+    )
 
 
 class ResponseReader(Reader):
-
     def __init__(self, *args, **kwargs):
         from hematite.raw.response import RawResponse  # TODO TODO
+
         self.raw_response = RawResponse()
 
         self.headers_reader = HeadersReader()
@@ -776,7 +795,7 @@ class ResponseReader(Reader):
         # should ignore the CRLF.
         #
         # Assume the same for status lines
-        line = '\r\n'
+        line = "\r\n"
         while LINE_END.match(line):
             t, line = yield self.state
             assert t == M.HaveLine.type
@@ -801,8 +820,9 @@ class ResponseReader(Reader):
         if not rresp.chunked:
             rresp.body = datastructures.Body(decompression=decomp)
             content_length = rresp.content_length
-            b_reader = IdentityEncodedBodyReader(rresp.body,
-                                                 content_length=content_length)
+            b_reader = IdentityEncodedBodyReader(
+                rresp.body, content_length=content_length
+            )
             self.body_reader = b_reader
         else:
             rresp.body = datastructures.ChunkedBody(decompression=decomp)
@@ -812,8 +832,8 @@ class ResponseReader(Reader):
         while not self.complete:
             self.state = self.body_reader.send((yield self.state))
 
-        #from hematite.raw.response import RawResponse  # TODO TODO
-        #self.raw_response = RawResponse(status_line=self.status_line,
+        # from hematite.raw.response import RawResponse  # TODO TODO
+        # self.raw_response = RawResponse(status_line=self.status_line,
         #                                headers=self.headers,
         #                                body=self.body)
 
@@ -826,5 +846,4 @@ def _flush_writer_to_bytes(writer):
     Takes an instance of a Writer subclass and flushes what's left in
     it to a bytestring, mostly a testing convenience.
     """
-    return b''.join(part for _state, part in writer.writer if
-                    _state != M.Complete.type)
+    return b"".join(part for _state, part in writer.writer if _state != M.Complete.type)
