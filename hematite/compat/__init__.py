@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import sys
 
 from .dictutils import OrderedMultiDict, OMD
@@ -10,7 +9,7 @@ def make_BytestringHelperMeta(target):
         def __new__(cls, name, bases, attrs):
             if "to_bytes" in attrs:
                 attrs[target] = attrs["to_bytes"]
-            return super(BytestringHelperMeta, cls).__new__(cls, name, bases, attrs)
+            return super().__new__(cls, name, bases, attrs)
 
     return BytestringHelperMeta
 
@@ -42,7 +41,7 @@ BytestringHelper = BytestringHelperMeta("BytestringHelper", (object,), {})
 
 # from boltons
 def make_sentinel(name="_MISSING", var_name=None):
-    class Sentinel(object):
+    class Sentinel:
         def __init__(self):
             self.name = name
             self.var_name = var_name
@@ -50,7 +49,7 @@ def make_sentinel(name="_MISSING", var_name=None):
         def __repr__(self):
             if self.var_name:
                 return self.var_name
-            return "%s(%r)" % (self.__class__.__name__, self.name)
+            return f"{self.__class__.__name__}({self.name!r})"
 
         if var_name:
 

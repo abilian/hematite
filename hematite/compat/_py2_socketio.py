@@ -5,7 +5,7 @@ import io
 import socket
 import sys
 
-_blocking_errnos = set([errno.EAGAIN, errno.EWOULDBLOCK])
+_blocking_errnos = {errno.EAGAIN, errno.EWOULDBLOCK}
 
 
 class _SocketIO_py27(io.RawIOBase):
@@ -48,14 +48,14 @@ class _SocketIO_py27(io.RawIOBase):
         self._checkClosed()
         self._checkReadable()
         if self._timeout_occurred:
-            raise IOError("cannot read from timed out object")
+            raise OSError("cannot read from timed out object")
         while True:
             try:
                 return self._sock.recv_into(b)
             except socket.timeout:
                 self._timeout_occurred = True
                 raise
-            except socket.error as e:
+            except OSError as e:
                 en = e.args[0]
                 if en == errno.EINTR:
                     continue
@@ -73,7 +73,7 @@ class _SocketIO_py27(io.RawIOBase):
         self._checkWritable()
         try:
             return self._sock.send(b)
-        except socket.error as e:
+        except OSError as e:
             # XXX what about EINTR?
             if e.args[0] in _blocking_errnos:
                 return None
@@ -95,7 +95,7 @@ class _SocketIO_py27(io.RawIOBase):
         """True if the SocketIO is open for seeking."""
         if self.closed:
             raise ValueError("I/O operation on closed socket.")
-        return super(_SocketIO_py27, self).seekable()
+        return super().seekable()
 
     def fileno(self):
         """Return the file descriptor of the underlying socket."""
@@ -133,7 +133,7 @@ class _SocketIO_py26(_SocketIO_py27):
         was shutdown at the other end.
         """
         a = array.array("b", b)
-        res = super(_SocketIO_py26, self).readinto(a)
+        res = super().readinto(a)
         b[:] = buffer(a)
         return res
 

@@ -81,7 +81,7 @@ class HTTPVersion(namedtuple("HTTPVersion", "major minor"), BytestringHelper):
     """
 
     PARSE_VERSION = re.compile(
-        "HTTP/" "(?P<http_major_version>\d+)" "\." "(?P<http_minor_version>\d+)"
+        "HTTP/" r"(?P<http_major_version>\d+)" r"\." r"(?P<http_minor_version>\d+)"
     )
 
     def to_bytes(self):
@@ -131,7 +131,7 @@ class StatusLine(
                 "(?:",
                 core.START_LINE_SEP.pattern,
                 ")?",
-                "(?P<status_code>\d{3})?",
+                r"(?P<status_code>\d{3})?",
                 "(?:",
                 core.START_LINE_SEP.pattern,
                 # 6.1: No CR or LF is allowed except in the final CRLF
@@ -302,7 +302,7 @@ class RequestLine(namedtuple("RequestLine", "method url version"), BytestringHel
         return cls.from_match(match)
 
 
-class _ProtocolElement(object):
+class _ProtocolElement:
     _fields = ("state",)
     state = M.Empty
 
@@ -314,14 +314,14 @@ class _ProtocolElement(object):
         cn = self.__class__.__name__
         fields = self._fields
         fields_and_values = [
-            "{0}={1!r}".format(field, getattr(self, field)) for field in fields
+            f"{field}={getattr(self, field)!r}" for field in fields
         ]
-        return "<{0} {1}>".format(cn, ", ".join(fields_and_values))
+        return "<{} {}>".format(cn, ", ".join(fields_and_values))
 
 
 class Reader(_ProtocolElement, metaclass=ABCMeta):
     def __init__(self, *args, **kwargs):
-        super(Reader, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self.bytes_read = 0
 
@@ -340,7 +340,7 @@ class Reader(_ProtocolElement, metaclass=ABCMeta):
 
 class Writer(_ProtocolElement, metaclass=ABCMeta):
     def __init__(self, *args, **kwargs):
-        super(Writer, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self.bytes_written = 0
 
@@ -348,8 +348,7 @@ class Writer(_ProtocolElement, metaclass=ABCMeta):
         self.state = M.Empty
 
     def __iter__(self):
-        for result in self.writer:
-            yield result
+        yield from self.writer
 
     @abstractmethod
     def _make_writer(self):
@@ -365,7 +364,7 @@ class HeadersReader(Reader):
     _fields = Reader._fields + ("headers",)
 
     def __init__(self, headers=None, *args, **kwargs):
-        super(HeadersReader, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         if headers is None:
             headers = datastructures.Headers()
         self.headers = headers
@@ -412,7 +411,7 @@ class HeadersReader(Reader):
             self.headers.add(key, value)
         else:
             raise InvalidHeaders(
-                "Consumed limit of {0} bytes "
+                "Consumed limit of {} bytes "
                 "without finding "
                 " headers".format(core.MAXHEADERBYTES)
             )
@@ -424,7 +423,7 @@ class HeadersReader(Reader):
 
 class HeadersWriter(Writer):
     def __init__(self, headers, *args, **kwargs):
-        super(HeadersWriter, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.headers = headers
 
     def _make_writer(self):
@@ -452,7 +451,7 @@ class IdentityEncodedBodyReader(Reader):
         self.content_length = content_length
         self.bytes_remaining = None
 
-        super(IdentityEncodedBodyReader, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def _make_reader(self):
         self.bytes_remaining = (
@@ -476,7 +475,7 @@ class IdentityEncodedBodyReader(Reader):
                     break
 
                 raise IncompleteBody(
-                    "Could not read remaining {0} " "bytes".format(self.bytes_remaining)
+                    "Could not read remaining {} " "bytes".format(self.bytes_remaining)
                 )
 
             self.bytes_read += amount
@@ -495,7 +494,7 @@ class IdentityEncodedBodyReader(Reader):
 
 class IdentityEncodedBodyWriter(Writer):
     def __init__(self, body, content_length=None, *args, **kwargs):
-        super(IdentityEncodedBodyWriter, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.body = body
         self.content_length = content_length
         self.bytes_remaining = None
@@ -517,11 +516,11 @@ class IdentityEncodedBodyWriter(Writer):
 
 
 class ChunkEncodedBodyReader(Reader):
-    IS_HEX = re.compile("([\dA-Ha-h]+)[\t ]*" + core.LINE_END.pattern)
+    IS_HEX = re.compile("([\\dA-Ha-h]+)[\t ]*" + core.LINE_END.pattern)
 
     def __init__(self, body, *args, **kwargs):
         self.body = body
-        super(ChunkEncodedBodyReader, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.reset()
 
     def reset(self):
@@ -596,7 +595,7 @@ class ChunkEncodedBodyReader(Reader):
 class ChunkEncodedBodyWriter(Writer):
     def __init__(self, body, *args, **kwargs):
         self.body = body
-        super(ChunkEncodedBodyWriter, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def _make_writer(self):
         for chunk in self.body.send_chunk():
@@ -621,7 +620,7 @@ class RequestWriter(Writer):
         self.request_line = request_line
         self.headers = headers
         self.body = body
-        super(RequestWriter, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def _make_writer(self):
         rl = bytes(self.request_line) + "\r\n"
@@ -656,7 +655,7 @@ class RequestReader(Reader):
         self.chunked = False
         self.content_length = None
 
-        super(RequestReader, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def _make_reader(self):
         LINE_END = core.LINE_END
@@ -699,7 +698,7 @@ class ResponseWriter(Writer):
         self.status_line = status_line
         self.headers = headers
         self.body = body
-        super(ResponseWriter, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def _make_writer(self):
         sl = bytes(self.status_line) + "\r\n"
@@ -780,7 +779,7 @@ class ResponseReader(Reader):
         self.chunked = False
         self.content_length = None
 
-        super(ResponseReader, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def _make_reader(self):
         LINE_END = core.LINE_END

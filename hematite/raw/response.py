@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from io import BytesIO
 
 from hematite.raw import messages as M
@@ -22,7 +20,7 @@ DEFAULT_HTTP_VERSION = HTTPVersion(1, 1)
 # instantiation of a truly blank RawResponse?
 
 
-class RawResponse(object):
+class RawResponse:
     def __init__(
         self,
         status_code=None,
@@ -98,14 +96,14 @@ class RawResponse(object):
                     pass  # TODO: again, what happens on end of stream
                 next_state = M.HavePeek(amount=peeked)
             else:
-                raise RuntimeError("Unknown state %r" % (state,))
+                raise RuntimeError(f"Unknown state {state!r}")
             state = reader.send(next_state)
 
         return reader.raw_response
 
     def __repr__(self):
         cn = self.__class__.__name__
-        parts = ['<%s "%s %s"' % (cn, self.status_code, self.reason)]
+        parts = [f'<{cn} "{self.status_code} {self.reason}"']
         if self.content_length:
             parts.append(" content_length=%s" % self.content_length)
         if self.chunked:

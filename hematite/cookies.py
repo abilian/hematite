@@ -1,7 +1,4 @@
-# -*- coding: utf-8 -*-
-
-
-class Cookie(object):
+class Cookie:
     def __init__(
         self,
         name,
@@ -35,7 +32,7 @@ class Cookie(object):
         return self.key  # TODO
 
 
-class CookieStore(object):
+class CookieStore:
     def __init__(self, cookies=None):
         self.per_domain_limit = 50
         self.total_limit = 3000

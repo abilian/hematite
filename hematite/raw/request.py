@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from io import BytesIO
 from hematite.raw import messages as M
 from hematite.raw.messages import Complete
@@ -15,7 +13,7 @@ from hematite.raw.parser import (
 )
 
 
-class RawRequest(object):
+class RawRequest:
     # TODO: is this a good pattern at this level?
     _writer_class = RequestWriter
 
@@ -101,14 +99,14 @@ class RawRequest(object):
                     pass  # TODO: again, what happens on end of stream
                 next_state = M.HavePeek(amount=peeked)
             else:
-                raise RuntimeError("Unknown state %r" % (state,))
+                raise RuntimeError(f"Unknown state {state!r}")
             state = reader.send(next_state)
 
         return reader.raw_request
 
     def __repr__(self):
         cn = self.__class__.__name__
-        parts = ['<%s "%s %s"' % (cn, self.method, self.url)]
+        parts = [f'<{cn} "{self.method} {self.url}"']
         if self.content_length:
             parts.append(" content_length=%s" % self.content_length)
         if self.chunked:

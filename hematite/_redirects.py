@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Some pseudocode and sketches toward following redirects
 
 FOLLOWABLE_REDIRECTS = [301, 302, 303, 307, 308]

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from .compat.dictutils import OMD
 
 HEADER_CASE_MAP = None
@@ -16,7 +14,7 @@ def _init_headers():
     )
     REQUEST_HEADERS = GENERAL_HEADERS + REQUEST_ONLY_HEADERS + ENTITY_HEADERS
     RESPONSE_HEADERS = GENERAL_HEADERS + RESPONSE_ONLY_HEADERS + ENTITY_HEADERS
-    HEADER_CASE_MAP = dict((h.lower(), h) for h in ALL_HEADERS)
+    HEADER_CASE_MAP = {h.lower(): h for h in ALL_HEADERS}
 
 
 GENERAL_HEADERS = [

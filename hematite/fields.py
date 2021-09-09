@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from datetime import datetime, timedelta
 
 from hematite.constants import (
@@ -50,7 +48,7 @@ def _init_field_lists():
     REQUEST_FIELDS = HTTP_REQUEST_FIELDS + URL_REQUEST_FIELDS
 
 
-class HeaderValueWrapper(object):
+class HeaderValueWrapper:
     # TODO: how to indicate whether header value should be included
     # - __nonzero__ can collide with int-typed headers where 0 is valid
     # - a blank to_bytes() output might work, but is a bit confusing
@@ -84,7 +82,7 @@ class ETag(HeaderValueWrapper):
 
     def __repr__(self):
         cn = self.__class__.__name__
-        return "%s(%r, is_weak=%r)" % (cn, self.tag, self.is_weak)
+        return f"{cn}({self.tag!r}, is_weak={self.is_weak!r})"
 
 
 class ETagSet(HeaderValueWrapper):
@@ -113,7 +111,7 @@ class ETagSet(HeaderValueWrapper):
 
     def __repr__(self):
         cn = self.__class__.__name__
-        return "%s(%r)" % (cn, self.etags)
+        return f"{cn}({self.etags!r})"
 
 
 class Range(HeaderValueWrapper):
@@ -131,7 +129,7 @@ class Range(HeaderValueWrapper):
 
     def __repr__(self):
         cn = self.__class__.__name__
-        return "%s(ranges=%r, unit=%r)" % (cn, self.ranges, self.unit)
+        return f"{cn}(ranges={self.ranges!r}, unit={self.unit!r})"
 
 
 class ContentRange(HeaderValueWrapper):
@@ -150,7 +148,7 @@ class ContentRange(HeaderValueWrapper):
 
     def __repr__(self):
         cn = self.__class__.__name__
-        return "%s(begin=%r, end=%r, total=%r, unit=%r)" % (
+        return "{}(begin={!r}, end={!r}, total={!r}, unit={!r})".format(
             cn,
             self.begin,
             self.end,
@@ -159,7 +157,7 @@ class ContentRange(HeaderValueWrapper):
         )
 
 
-class Field(object):
+class Field:
     attr_name = None
 
     def __delete__(self, obj):
@@ -167,7 +165,7 @@ class Field(object):
 
     def __repr__(self):
         cn = self.__class__.__name__
-        return '%s("%s")' % (cn, self.attr_name)
+        return f'{cn}("{self.attr_name}")'
 
 
 class HTTPHeaderField(Field):
@@ -224,7 +222,7 @@ class HTTPHeaderField(Field):
             ntn = self.native_type.__name__
             # TODO: include trunc'd value in addition to input type name
             raise TypeError(
-                "expected bytes or %s for %s, not %s" % (ntn, self.attr_name, vtn)
+                f"expected bytes or {ntn} for {self.attr_name}, not {vtn}"
             )
         # TODO: if obj.headers.get(self.http_name) != value:
         obj.headers[self.http_name] = value
@@ -288,19 +286,19 @@ class ContentType(HeaderValueWrapper):
         if self.charset:
             parts.append("charset=" + self.charset)
         if self.params:
-            parts.extend(["%s=%s" % (k, v) for k, v in list(self.params.items())])
+            parts.extend([f"{k}={v}" for k, v in list(self.params.items())])
         return "; ".join(parts)
 
     def __repr__(self):
         cn = self.__class__.__name__
         if self.params:
-            return "%s(%r, charset=%r, params=%r)" % (
+            return "{}({!r}, charset={!r}, params={!r})".format(
                 cn,
                 self.media_type,
                 self.charset,
                 self.params,
             )
-        return "%s(%r, charset=%r)" % (cn, self.media_type, self.charset)
+        return f"{cn}({self.media_type!r}, charset={self.charset!r})"
 
 
 content_type = HTTPHeaderField("content_type", native_type=ContentType)
@@ -340,7 +338,7 @@ class ContentDisposition(HeaderValueWrapper):
         if self.filename_ext is not None:
             parts.append("filename*=" + self.filename_ext)
         if self.params:
-            parts.extend(["%s=%s" % (k, v) for k, v in list(self.params.items())])
+            parts.extend([f"{k}={v}" for k, v in list(self.params.items())])
         return "; ".join(parts)
 
     def get_filename(self, coerce_ext=True):
@@ -358,14 +356,14 @@ class ContentDisposition(HeaderValueWrapper):
     def __repr__(self):
         cn = self.__class__.__name__
         if self.params:
-            return "%s(%r, filename=%r, filename_ext=%r, params=%r)" % (
+            return "{}({!r}, filename={!r}, filename_ext={!r}, params={!r})".format(
                 cn,
                 self.disp_type,
                 self.filename,
                 self.filename_ext,
                 self.params,
             )
-        return "%s(%r, filename=%r, filename_ext=%r)" % (
+        return "{}({!r}, filename={!r}, filename_ext={!r})".format(
             cn,
             self.disp_type,
             self.filename,
@@ -475,10 +473,10 @@ referer = HTTPHeaderField("referer", native_type=URL)
 
 class HostHeaderField(HTTPHeaderField):
     def __init__(self):
-        super(HostHeaderField, self).__init__(name="host")
+        super().__init__(name="host")
 
     def __set__(self, obj, value):
-        super(HostHeaderField, self).__set__(obj, value)
+        super().__set__(obj, value)
         cur_val = obj.headers.get("Host")
         url = obj._url
 

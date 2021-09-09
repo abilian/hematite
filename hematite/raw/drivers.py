@@ -9,7 +9,7 @@ import ssl
 from threading import Lock, RLock
 
 
-class BaseIODriver(object, metaclass=ABCMeta):
+class BaseIODriver(metaclass=ABCMeta):
     def __init__(self, reader, writer):
         self.reader = reader
         self.writer = writer
@@ -60,7 +60,7 @@ class BaseIODriver(object, metaclass=ABCMeta):
             elif state.type == M.HaveData.type:
                 self.write_data(state.value)
             else:
-                raise RuntimeError("Unknown state {0!r}".format(state))
+                raise RuntimeError(f"Unknown state {state!r}")
         return False
 
     def read(self):
@@ -76,7 +76,7 @@ class BaseIODriver(object, metaclass=ABCMeta):
                 peeked = self.read_peek(self.state.amount)
                 next_state = M.HavePeek(value=peeked)
             else:
-                raise RuntimeError("Unknown state {0!r}".format(self.state))
+                raise RuntimeError(f"Unknown state {self.state!r}")
             self.state = self.reader.send(next_state)
         return True
 
@@ -122,7 +122,7 @@ class SocketDriver(BaseIODriver):
 
     # NB we're shadowing the socket module here!
     def __init__(self, socket, reader, writer):
-        super(SocketDriver, self).__init__(reader=reader, writer=writer)
+        super().__init__(reader=reader, writer=writer)
 
         self.outbound = self.SocketIO(socket, "rwb")
         self.inbound = io.BufferedReader(self.outbound)
@@ -147,7 +147,7 @@ class SocketDriver(BaseIODriver):
                 else:
                     # the socket was actually disconnected
                     raise core.EndOfStream
-            except socket.error as e:
+            except OSError as e:
                 if e.errno not in (socket.EAGAIN, socket.EWOULDBLOCK):
                     # if this isn't a blocking io errno, raise the legitimate
                     # exception
@@ -210,7 +210,7 @@ class SocketDriver(BaseIODriver):
         with self.write_backlog_rlock:
             if self.write_backlog:
                 self.write_data(self.write_backlog)
-        return super(SocketDriver, self).write()
+        return super().write()
 
 
 class SSLSocketIO(SocketIO):
@@ -219,7 +219,7 @@ class SSLSocketIO(SocketIO):
     def readinto(self, b):
         try:
             self._ssl_state = None
-            return super(SSLSocketIO, self).readinto(b)
+            return super().readinto(b)
         except ssl.SSLError as ssl_exc:
             if ssl_exc.errno == ssl.SSL_ERROR_WANT_READ:
                 self._ssl_state = ssl_exc.errno
@@ -229,7 +229,7 @@ class SSLSocketIO(SocketIO):
     def write(self, b):
         try:
             self._ssl_state = None
-            return super(SSLSocketIO, self).write(b)
+            return super().write(b)
         except ssl.SSLError as ssl_exc:
             if ssl_exc.errno == ssl.SSL_ERROR_WANT_WRITE:
                 self._ssl_state = ssl_exc.errno
@@ -242,7 +242,7 @@ class SSLSocketDriver(SocketDriver):
 
     def __init__(self, *args, **kwargs):
         self._socket = None
-        super(SSLSocketDriver, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     @property
     def socket(self):
@@ -256,13 +256,13 @@ class SSLSocketDriver(SocketDriver):
     def want_read(self):
         if self.outbound._ssl_state:
             return self.outbound._ssl_state == ssl.SSL_ERROR_WANT_READ
-        return super(SSLSocketDriver, self).want_read
+        return super().want_read
 
     @property
     def want_write(self):
         if self.outbound._ssl_state:
             return self.outbound._ssl_state == ssl.SSL_ERROR_WANT_WRITE
-        return super(SSLSocketDriver, self).want_write
+        return super().want_write
 
 
 class BufferedReaderDriver(BaseIODriver):

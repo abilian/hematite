@@ -1,4 +1,4 @@
-class Profile(object):
+class Profile:
     default_headers = []
 
     def populate_headers(self, request):

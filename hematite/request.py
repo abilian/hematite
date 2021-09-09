@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from collections import Iterable
 from hematite.raw.request import RawRequest
 from hematite.raw.datastructures import Headers
@@ -16,7 +14,7 @@ DEFAULT_VERSION = HTTPVersion(1, 1)
 DEFAULT_SCHEME = "http"
 
 
-class Request(object):
+class Request:
     def __init__(self, method=None, url=None, **kw):
         self.method = method or DEFAULT_METHOD
         self.http_version = kw.pop("http_version", DEFAULT_VERSION)
@@ -59,7 +57,7 @@ class Request(object):
             raise ValueError("Body must be string, iterable of strings " "or None")
 
     # TODO: could use a metaclass for this, could also build it at init
-    _header_field_map = dict([(hf.http_name, hf) for hf in HTTP_REQUEST_FIELDS])
+    _header_field_map = {hf.http_name: hf for hf in HTTP_REQUEST_FIELDS}
     locals().update([(hf.attr_name, hf) for hf in REQUEST_FIELDS])
     _init_headers = serdes._init_headers
     _get_header_dict = serdes._get_headers

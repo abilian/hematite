@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # from compat import unicode, bytes
 
 # TODO: round-tripping tests

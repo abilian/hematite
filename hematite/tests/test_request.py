@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from hematite.request import Request
 
 BASIC_REQ = "\r\n".join(

@@ -34,13 +34,13 @@ class Headers(OMD):
             values.append(v)
 
     def getlist(self, k):
-        return super(Headers, self).getlist(k.lower())
+        return super().getlist(k.lower())
 
     def get(self, k, default=None, multi=False):
-        return super(Headers, self).get(k.lower(), default, multi)
+        return super().get(k.lower(), default, multi)
 
     def setdefault(self, k, default=None):
-        return super(Headers, self).setdefault(k.lower(), default)
+        return super().setdefault(k.lower(), default)
 
     def copy(self):
         return self.__class__(self.iteritems(multi=True, preserve_case=True))
@@ -57,7 +57,7 @@ class Headers(OMD):
             for k, v in E.iteritems(multi=True, preserve_case=True):
                 self_add(k, v)
         elif isinstance(E, OMD):
-            return super(Headers, self).update(E)
+            return super().update(E)
         elif hasattr(E, "keys"):
             for k in list(E.keys()):
                 self[k] = E[k]
@@ -75,7 +75,7 @@ class Headers(OMD):
         return
 
     def __getitem__(self, key):
-        return super(Headers, self).__getitem__(key.lower())
+        return super().__getitem__(key.lower())
 
     def get_cased_items(self, k):
         k = k.lower()
@@ -83,7 +83,7 @@ class Headers(OMD):
 
     def __setitem__(self, k, v):
         orig_key, k = k, k.lower()
-        if super(Headers, self).__contains__(k):
+        if super().__contains__(k):
             self._remove_all(k)
         self._insert(k, v, orig_key)
         super(OMD, self).__setitem__(k, [v])
@@ -98,7 +98,7 @@ class Headers(OMD):
                 curr = curr[NEXT]
         else:
             # this isn't so good
-            items = super(Headers, self).iteritems(multi=False)
+            items = super().iteritems(multi=False)
             if preserve_case:
                 for key, value in items:
                     orig_key = self._map.get(key)[-1][ORIG_KEY]
@@ -115,20 +115,20 @@ class Headers(OMD):
             curr = curr[NEXT]
 
     def popall(self, k, default=_MISSING):
-        return super(Headers, self).popall(k.lower(), default)
+        return super().popall(k.lower(), default)
 
     def poplast(self, k=_MISSING, default=_MISSING):
         k = k.lower() if k is not _MISSING else k
-        return super(Headers, self).poplast(k)
+        return super().poplast(k)
 
     def items(self, multi=False, preserve_case=True):
         return list(self.iteritems(multi=multi, preserve_case=preserve_case))
 
     def __contains__(self, k):
-        return super(Headers, self).__contains__(k.lower())
+        return super().__contains__(k.lower())
 
 
-class Decompress(object):
+class Decompress:
     WBITS = {"gzip": (16 + zlib.MAX_WBITS,), "deflate": ()}
 
     def __init__(self, decompression):
@@ -136,7 +136,7 @@ class Decompress(object):
             try:
                 args = self.WBITS[decompression]
             except KeyError:
-                raise RuntimeError("unknown decompression " "{0}".format(decompression))
+                raise RuntimeError("unknown decompression " "{}".format(decompression))
             self.decompressor = zlib.decompressobj(*args)
             self.decompress = self.decompressor.decompress
 
@@ -146,7 +146,7 @@ class Decompress(object):
 
 class ChunkedBody(Decompress):
     def __init__(self, chunks=None, decompression=None):
-        super(ChunkedBody, self).__init__(decompression)
+        super().__init__(decompression)
         self.chunks = chunks or []
         self.data = None
         self.nominal_length = None
@@ -168,13 +168,13 @@ class ChunkedBody(Decompress):
         else:
             chunkstr = "%s chunks" % len(self.chunks)
         compstr = "complete" if self.data else "incomplete"
-        totsize = sum([len(c) for c in self.chunks])
-        return "<%s %s, %s total bytes, %s>" % (cn, chunkstr, totsize, compstr)
+        totsize = sum(len(c) for c in self.chunks)
+        return f"<{cn} {chunkstr}, {totsize} total bytes, {compstr}>"
 
 
 class Body(Decompress):
     def __init__(self, body=None, decompression=None):
-        super(Body, self).__init__(decompression)
+        super().__init__(decompression)
         self.body = body or []
         self.data = None
         self.nominal_length = None
@@ -197,10 +197,10 @@ class Body(Decompress):
         if len(self.body) > 1:
             partstr = " %s parts," % len(self.body)
         compstr = "complete" if self.data else "incomplete"
-        totsize = sum([len(p) for p in self.body])
-        return "<%s%s %s total bytes, %s>" % (cn, partstr, totsize, compstr)
+        totsize = sum(len(p) for p in self.body)
+        return f"<{cn}{partstr} {totsize} total bytes, {compstr}>"
 
 
-class UnifiedBody(object):
+class UnifiedBody:
     def __init__(self):
         pass

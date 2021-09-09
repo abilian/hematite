@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from collections import KeysView, ValuesView, ItemsView
 
 
@@ -77,7 +75,7 @@ class OrderedMultiDict(dict):
                 "%s expected at most 1 argument, got %s"
                 % (self.__class__.__name__, len(args))
             )
-        super(OrderedMultiDict, self).__init__()
+        super().__init__()
 
         self._clear_ll()
         if args:
@@ -104,7 +102,7 @@ class OrderedMultiDict(dict):
 
     def add(self, k, v, multi=False):
         self_insert = self._insert
-        values = super(OrderedMultiDict, self).setdefault(k, [])
+        values = super().setdefault(k, [])
         if multi:
             for subv in v:
                 self_insert(k, subv)
@@ -114,14 +112,14 @@ class OrderedMultiDict(dict):
             values.append(v)
 
     def getlist(self, k):
-        return super(OrderedMultiDict, self).__getitem__(k)[:]
+        return super().__getitem__(k)[:]
 
     def clear(self):
-        super(OrderedMultiDict, self).clear()
+        super().clear()
         self._clear_ll()
 
     def get(self, k, default=None, multi=False):
-        ret = super(OrderedMultiDict, self).get(k, [default])
+        ret = super().get(k, [default])
         return ret[:] if multi else ret[-1]
 
     def setdefault(self, k, default=None):
@@ -179,16 +177,16 @@ class OrderedMultiDict(dict):
             self_add(k, v)
 
     def __setitem__(self, k, v):
-        if super(OrderedMultiDict, self).__contains__(k):
+        if super().__contains__(k):
             self._remove_all(k)
         self._insert(k, v)
-        super(OrderedMultiDict, self).__setitem__(k, [v])
+        super().__setitem__(k, [v])
 
     def __getitem__(self, k):
-        return super(OrderedMultiDict, self).__getitem__(k)[-1]
+        return super().__getitem__(k)[-1]
 
     def __delitem__(self, k):
-        super(OrderedMultiDict, self).__delitem__(k)
+        super().__delitem__(k)
         self._remove_all(k)
 
     def __eq__(self, other):
@@ -224,11 +222,11 @@ class OrderedMultiDict(dict):
         return self.popall(k, default)[-1]
 
     def popall(self, k, default=_MISSING):
-        if super(OrderedMultiDict, self).__contains__(k):
+        if super().__contains__(k):
             self._remove_all(k)
         if default is _MISSING:
-            return super(OrderedMultiDict, self).pop(k)
-        return super(OrderedMultiDict, self).pop(k, default)
+            return super().pop(k)
+        return super().pop(k, default)
 
     def poplast(self, k=_MISSING, default=_MISSING):
         if k is _MISSING:
@@ -242,10 +240,10 @@ class OrderedMultiDict(dict):
             if default is _MISSING:
                 raise KeyError(k)
             return default
-        values = super(OrderedMultiDict, self).__getitem__(k)
+        values = super().__getitem__(k)
         v = values.pop()
         if not values:
-            super(OrderedMultiDict, self).__delitem__(k)
+            super().__delitem__(k)
         return v
 
     def _remove(self, k):
@@ -295,7 +293,7 @@ class OrderedMultiDict(dict):
             yield v
 
     def todict(self, ordered=False):
-        return dict([(k, self[k]) for k in self])
+        return {k: self[k] for k in self}
 
     def inverted(self):
         return self.__class__((v, k) for k, v in self.items())
@@ -305,7 +303,7 @@ class OrderedMultiDict(dict):
         Returns an OMD because Counter/OrderedDict may not be
         available, and neither Counter nor dict maintain order.
         """
-        super_getitem = super(OrderedMultiDict, self).__getitem__
+        super_getitem = super().__getitem__
         return self.__class__((k, len(super_getitem(k))) for k in self)
 
     def keys(self, multi=False):
@@ -325,7 +323,7 @@ class OrderedMultiDict(dict):
         curr = root[PREV]
         lengths = {}
         lengths_sd = lengths.setdefault
-        get_values = super(OrderedMultiDict, self).__getitem__
+        get_values = super().__getitem__
         while curr is not root:
             k = curr[KEY]
             vals = get_values(k)
@@ -337,7 +335,7 @@ class OrderedMultiDict(dict):
     def __repr__(self):
         cn = self.__class__.__name__
         kvs = ", ".join([repr((k, v)) for k, v in self.iteritems(multi=True)])
-        return "%s([%s])" % (cn, kvs)
+        return f"{cn}([{kvs}])"
 
     def viewkeys(self):
         "OMD.viewkeys() -> a set-like object providing a view on OMD's keys"
@@ -356,7 +354,7 @@ MultiDict = OrderedMultiDict
 
 
 class FastIterOrderedMultiDict(OrderedMultiDict):
-    """\ An OrderedMultiDict backed by a skip list.  Iteration over keys
+    r"""\ An OrderedMultiDict backed by a skip list.  Iteration over keys
     is faster and uses constant memory but adding duplicate key-value
     pairs is slower.
     """

@@ -46,7 +46,7 @@ class HTTPException(Exception):
                 msg = "".join([msg or "<unknown>", ": ", _cut(raw)])
             except:
                 pass
-        super(HTTPException, self).__init__(msg)
+        super().__init__(msg)
 
 
 class ReadException(HTTPException):

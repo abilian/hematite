@@ -2,7 +2,7 @@ from abc import ABCMeta
 from collections import namedtuple
 
 
-class Message(object, metaclass=ABCMeta):
+class Message(metaclass=ABCMeta):
     pass
 
 

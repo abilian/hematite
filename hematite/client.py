@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import ssl
 import time
 import errno
@@ -17,7 +15,7 @@ from hematite.profile import HematiteProfile
 class ConnectionError(Exception):  # TODO: maybe inherit from socket.error?
     def __init__(self, *a, **kw):
         self.socket_error = kw.pop("socket_error", None)
-        super(ConnectionError, self).__init__(*a, **kw)
+        super().__init__(*a, **kw)
 
     def __str__(self):
         return repr(self)
@@ -25,8 +23,8 @@ class ConnectionError(Exception):  # TODO: maybe inherit from socket.error?
     def __repr__(self):
         cn = self.__class__.__name__
         if self.socket_error:
-            return "%s(%r)" % (cn, self.socket_error)
-        return super(ConnectionError, self).__repr__()
+            return f"{cn}({self.socket_error!r})"
+        return super().__repr__()
 
 
 class UnknownHost(ConnectionError):
@@ -54,7 +52,7 @@ CLIENT_METHODS = [
 ]  # CONNECT intentionally omitted
 
 
-class ClientOperation(object):
+class ClientOperation:
     def __init__(self, client, method):
         self.client = client
         self.method = method
@@ -70,7 +68,7 @@ class ClientOperation(object):
         return self.client.request(request=req, async_=True)
 
 
-class UnboundClientOperation(object):
+class UnboundClientOperation:
     def __init__(self, method):
         self.method = method
 
@@ -81,7 +79,7 @@ class UnboundClientOperation(object):
 
     def __repr__(self):
         cn = self.__class__.__name__
-        return "%s(method=%r)" % (cn, self.method)
+        return f"{cn}(method={self.method!r})"
 
 
 def lookup_url(url):
@@ -121,7 +119,7 @@ def lookup_url(url):
     return ret
 
 
-class Client(object):
+class Client:
 
     for client_method in CLIENT_METHODS:
         locals()[client_method.lower()] = UnboundClientOperation(client_method)
@@ -141,7 +139,7 @@ class Client(object):
         url = request.host_url  # a URL object
         try:
             return lookup_url(url)
-        except socket.error as se:
+        except OSError as se:
             raise UnknownHost(socket_error=se)
 
     # TODO: maybe split out addrinfo into relevant fields
@@ -160,7 +158,7 @@ class Client(object):
 
         try:
             conn_res = ret.connect_ex(sockaddr)
-        except socket.error as se:
+        except OSError as se:
             conn_res = se.args[0]
 
         if conn_res:
@@ -176,7 +174,7 @@ class Client(object):
         # visible with this 'one weird old trick'
         err = ret.getsockopt(socket.SOL_SOCKET, socket.SO_ERROR)
         if err:
-            raise socket.error("Unknown", err)
+            raise OSError("Unknown", err)
 
         return ret
 
@@ -194,7 +192,7 @@ class Client(object):
         return client_resp
 
 
-class _OldState(object):
+class _OldState:
     # TODO: ssl_connect?
 
     (
@@ -220,7 +218,7 @@ class _OldState(object):
     # ReceivingResponseContent, Complete
 
 
-class _State(object):
+class _State:
     # TODO: Securing/Handshaking
     # TODO: WaitingForContinue  # 100 Continue that is
     (NotStarted, ResolvingHost, Connecting, Sending, Receiving, Complete) = list(
@@ -243,7 +241,7 @@ explicit URL field.
 """
 
 
-class ClientResponse(object):
+class ClientResponse:
     def __init__(self, client, request=None, **kwargs):
         self.client = client
         self._set_request(request)
@@ -297,7 +295,7 @@ class ClientResponse(object):
     @property
     def norm_timings(self):
         t = self.timings
-        return dict([(k, v - t["created"]) for (k, v) in list(t.items())])
+        return {k: v - t["created"] for (k, v) in list(t.items())}
 
     @property
     def semantic_state(self):

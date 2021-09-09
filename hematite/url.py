@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import re
 import socket
 import string
@@ -60,16 +58,16 @@ _URL_RE_STRICT = re.compile(
 )
 
 
-_HEX_CHAR_MAP = dict(
-    [(a + b, chr(int(a + b, 16))) for a in string.hexdigits for b in string.hexdigits]
-)
+_HEX_CHAR_MAP = {
+    a + b: chr(int(a + b, 16)) for a in string.hexdigits for b in string.hexdigits
+}
 _ASCII_RE = re.compile("([\x00-\x7f]+)")
 
 
 def _make_quote_map(allowed_chars):
     ret = {}
     for i, c in zip(list(range(256)), str(bytearray(list(range(256))))):
-        ret[c] = c if c in allowed_chars else "%{0:02X}".format(i)
+        ret[c] = c if c in allowed_chars else f"%{i:02X}"
     return ret
 
 
@@ -141,14 +139,14 @@ def parse_hostinfo(au_str):
             host = host[1:-1]
             try:
                 socket.inet_pton(socket.AF_INET6, host)
-            except socket.error:
+            except OSError:
                 raise ValueError("invalid IPv6 host: %r" % host)
             else:
                 family = socket.AF_INET6
                 return family, host, port
     try:
         socket.inet_pton(socket.AF_INET, host)
-    except socket.error:
+    except OSError:
         host = host if (host or port) else au_str
     else:
         family = socket.AF_INET
@@ -245,7 +243,7 @@ class URL(BytestringHelper):
                 url_str = url_str.to_text()  # better way to copy URLs?
             url_dict = parse_url(url_str, encoding=encoding, strict=strict)
 
-        _d = str()
+        _d = ''
         self.path_params = _d  # TODO: support parsing path params?
         for attr in self._attrs:
             val = url_dict.get(attr, _d) or _d
@@ -365,7 +363,7 @@ class URL(BytestringHelper):
         return cls(bytestr)
 
     def __repr__(self):
-        return "%s(%r)" % (self.__class__.__name__, self.to_text())
+        return f"{self.__class__.__name__}({self.to_text()!r})"
 
     def __eq__(self, other):
         for attr in self._attrs:

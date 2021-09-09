@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from hematite.serdes import (
     content_range_spec_from_bytes,
     content_range_spec_to_bytes,

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from hematite import serdes
 from hematite.fields import RESPONSE_FIELDS
 from hematite.constants import CODE_REASONS
@@ -12,7 +10,7 @@ from hematite.raw.datastructures import Headers
 _DEFAULT_VERSION = HTTPVersion(1, 1)
 
 
-class Response(object):
+class Response:
     # TODO: from_request convenience method?
     def __init__(self, status_code, body=None, **kw):
         self.status_code = int(status_code)
@@ -30,7 +28,7 @@ class Response(object):
         return
 
     # TODO: could use a metaclass for this, could also build it at init
-    _header_field_map = dict([(hf.http_name, hf) for hf in RESPONSE_FIELDS])
+    _header_field_map = {hf.http_name: hf for hf in RESPONSE_FIELDS}
     locals().update([(hf.attr_name, hf) for hf in RESPONSE_FIELDS])
     _init_headers = serdes._init_headers
     _get_header_dict = serdes._get_headers

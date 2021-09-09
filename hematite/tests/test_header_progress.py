@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """
 A silly temporary "test" for the convenience of seeing which headers
 aren't yet supported.
