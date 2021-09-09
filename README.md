@@ -1,5 +1,11 @@
 # Hematite
 
+Fork developer note: this is being ported to Python 3. 
+
+This is still a massive WIP, though.
+
+---
+
 A full-featured and high-accuracy implementation of HTTP/1.1 in pure
 Python. Core features:
 
