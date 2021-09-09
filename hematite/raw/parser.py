@@ -294,9 +294,7 @@ class _ProtocolElement(object):
         return '<{0} {1}>'.format(cn, ', '.join(fields_and_values))
 
 
-class Reader(_ProtocolElement):
-    __metaclass__ = ABCMeta
-
+class Reader(_ProtocolElement, metaclass=ABCMeta):
     def __init__(self, *args, **kwargs):
         super(Reader, self).__init__(*args, **kwargs)
 
@@ -315,9 +313,7 @@ class Reader(_ProtocolElement):
         pass
 
 
-class Writer(_ProtocolElement):
-    __metaclass__ = ABCMeta
-
+class Writer(_ProtocolElement, metaclass=ABCMeta):
     def __init__(self, *args, **kwargs):
         super(Writer, self).__init__(*args, **kwargs)
 

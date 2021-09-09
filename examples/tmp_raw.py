@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
+from hematite.raw.datastructures import Headers
+from hematite.raw.request import RawRequest
+from hematite.raw.response import RawResponse
 
-from hematite.raw import RawRequest, Headers, RawResponse
 
 _GET_REQ_LINES = ('GET /wiki/Main_Page HTTP/1.1',
                   'Host: en.wikipedia.org',
@@ -32,9 +34,9 @@ RESP_200_BYTES = '\r\n'.join(_RESP_200_LINES)
 
 def main_req_write():
     rreq = RawRequest(headers=Headers({'AccepT': 'lol'}))
-    print repr(rreq.to_bytes())
-    print '------'
-    print rreq.to_bytes()
+    print(repr(rreq.to_bytes()))
+    print('------')
+    print(rreq.to_bytes())
 
 
 def main_req_read():
@@ -44,7 +46,7 @@ def main_req_read():
 
 def main():
     rresp = RawResponse.from_bytes(RESP_200_BYTES)
-    print rresp.to_bytes()
+    print(rresp.to_bytes())
 
 
 if __name__ == '__main__':

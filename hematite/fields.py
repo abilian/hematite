@@ -35,7 +35,7 @@ HTTP_REQUEST_FIELDS = None
 
 def _init_field_lists():
     global ALL_FIELDS, RESPONSE_FIELDS, REQUEST_FIELDS, HTTP_REQUEST_FIELDS
-    global_vals = globals().values()
+    global_vals = list(globals().values())
     ALL_FIELDS = [f for f in global_vals if isinstance(f, HTTPHeaderField)]
     RESPONSE_FIELDS = [f for f in ALL_FIELDS
                        if f.http_name in RESPONSE_HEADERS]
@@ -169,7 +169,7 @@ class HTTPHeaderField(Field):
         if http_name is None:
             http_name = HEADER_CASE_MAP[name.lower().replace('_', '-')]
         self.http_name = http_name
-        self.native_type = kw.pop('native_type', unicode)
+        self.native_type = kw.pop('native_type', str)
 
         default_from_bytes = (getattr(self.native_type, 'from_bytes', None)
                               or default_header_from_bytes)
@@ -269,7 +269,7 @@ class ContentType(HeaderValueWrapper):
         if self.charset:
             parts.append('charset=' + self.charset)
         if self.params:
-            parts.extend(['%s=%s' % (k, v) for k, v in self.params.items()])
+            parts.extend(['%s=%s' % (k, v) for k, v in list(self.params.items())])
         return '; '.join(parts)
 
     def __repr__(self):
@@ -319,7 +319,7 @@ class ContentDisposition(HeaderValueWrapper):
         if self.filename_ext is not None:
             parts.append('filename*=' + self.filename_ext)
         if self.params:
-            parts.extend(['%s=%s' % (k, v) for k, v in self.params.items()])
+            parts.extend(['%s=%s' % (k, v) for k, v in list(self.params.items())])
         return '; '.join(parts)
 
     def get_filename(self, coerce_ext=True):
@@ -600,7 +600,7 @@ class URLQueryStringField(BaseURLField):
     def __set__(self, obj, value):
         if value is None:
             obj._url.args.clear()
-        elif not isinstance(value, unicode):  # allow bytestrings?
+        elif not isinstance(value, str):  # allow bytestrings?
             raise TypeError('expected unicode, not %r' % type(value))
         else:
             obj._url.args = QueryParamDict.from_string(value)
@@ -617,7 +617,7 @@ class URLSchemeField(BaseURLField):
     def __set__(self, obj, value):
         if value is None:
             obj._url.scheme = ''
-        elif not isinstance(value, unicode):  # allow bytestrings?
+        elif not isinstance(value, str):  # allow bytestrings?
             raise TypeError('expected unicode, not %r' % type(value))
         else:
             obj._url.scheme = value

@@ -10,7 +10,7 @@ Next steps:
 from hematite.url import URL
 
 
-TEST_DATA = u"""\
+TEST_DATA = """\
 # Based on https://github.com/w3c/web-platform-tests/blob/master/url/urltestdata.txt
 # which is based on http://trac.webkit.org/browser/trunk/LayoutTests/fast/url/
 
@@ -80,13 +80,13 @@ def run_url_tests(data=TEST_DATA):
 
         parsed_test = parse_test(line)
         url = URL(parsed_test['input'])
-        print parsed_test, url
-        for k, v in parsed_test.items():
+        print(parsed_test, url)
+        for k, v in list(parsed_test.items()):
             if k == 'input':
                 continue
             url_value = getattr(url, k, None)
             if url_value is not None:
-                print '-', k, v, url_value
+                print('-', k, v, url_value)
 
 
 if __name__ == '__main__':

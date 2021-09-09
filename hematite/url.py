@@ -4,7 +4,7 @@ import re
 import socket
 import string
 
-from compat import (unicode, OrderedMultiDict, BytestringHelper)
+from .compat import (str, OrderedMultiDict, BytestringHelper)
 
 """
 - url.path_params (semicolon separated) http://www.w3.org/TR/REC-html40/appendix/notes.html#h-B.2.2
@@ -18,15 +18,15 @@ The URL class isn't really for validation at the moment, though it is highly sta
 DEFAULT_ENCODING = 'utf-8'
 
 # The unreserved URI characters (per RFC 3986)
-_UNRESERVED_CHARS = (frozenset(string.uppercase)
-                     | frozenset(string.lowercase)
+_UNRESERVED_CHARS = (frozenset(string.ascii_uppercase)
+                     | frozenset(string.ascii_lowercase)
                      | frozenset(string.digits)
                      | frozenset('-._~'))
 _RESERVED_CHARS = frozenset(":/?#[]@!$&'()*+,;=")
 _PCT_ENCODING = (frozenset('%')
                  | frozenset(string.digits)
-                 | frozenset(string.uppercase[:6])
-                 | frozenset(string.lowercase[:6]))
+                 | frozenset(string.ascii_uppercase[:6])
+                 | frozenset(string.ascii_lowercase[:6]))
 _ALLOWED_CHARS = _UNRESERVED_CHARS | _RESERVED_CHARS | _PCT_ENCODING
 
 # URL parsing regex (per RFC 3986)
@@ -58,7 +58,7 @@ _ASCII_RE = re.compile('([\x00-\x7f]+)')
 
 def _make_quote_map(allowed_chars):
     ret = {}
-    for i, c in zip(range(256), str(bytearray(range(256)))):
+    for i, c in zip(list(range(256)), str(bytearray(list(range(256))))):
         ret[c] = c if c in allowed_chars else '%{0:02X}'.format(i)
     return ret
 
@@ -69,7 +69,7 @@ _QUERY_ELEMENT_QUOTE_MAP = _make_quote_map(_ALLOWED_CHARS - set('#&='))
 
 def escape_path(text, to_bytes=True):
     if not to_bytes:
-        return u''.join([_PATH_QUOTE_MAP.get(c, c) for c in text])
+        return ''.join([_PATH_QUOTE_MAP.get(c, c) for c in text])
     try:
         bytestr = text.encode('utf-8')
     except UnicodeDecodeError:
@@ -81,7 +81,7 @@ def escape_path(text, to_bytes=True):
 
 def escape_query_element(text, to_bytes=True):
     if not to_bytes:
-        return u''.join([_QUERY_ELEMENT_QUOTE_MAP.get(c, c) for c in text])
+        return ''.join([_QUERY_ELEMENT_QUOTE_MAP.get(c, c) for c in text])
     try:
         bytestr = text.encode('utf-8')
     except UnicodeDecodeError:
@@ -153,10 +153,10 @@ def parse_userinfo(au_str):
 
 
 def parse_url(url_str, encoding=DEFAULT_ENCODING, strict=False):
-    if isinstance(url_str, str):
+    if isinstance(url_str, bytes):
         url_str = url_str.decode(encoding)
     else:
-        url_str = unicode(url_str)
+        url_str = str(url_str)
     #raise TypeError('parse_url expected unicode or bytes, not %r' % url_str)
     um = (_URL_RE_STRICT if strict else _URL_RE).match(url_str)
     try:
@@ -193,18 +193,18 @@ class QueryParamDict(OrderedMultiDict):
         # on observed behavior in chromium.
         ret_list = []
         for k, v in self.iteritems(multi=True):
-            key = escape_query_element(unicode(k), to_bytes=True)
-            val = escape_query_element(unicode(v), to_bytes=True)
+            key = escape_query_element(str(k), to_bytes=True)
+            val = escape_query_element(str(v), to_bytes=True)
             ret_list.append('='.join((key, val)))
         return '&'.join(ret_list)
 
     def to_text(self):
         ret_list = []
         for k, v in self.iteritems(multi=True):
-            key = escape_query_element(unicode(k), to_bytes=False)
-            val = escape_query_element(unicode(v), to_bytes=False)
-            ret_list.append(u'='.join((key, val)))
-        return u'&'.join(ret_list)
+            key = escape_query_element(str(k), to_bytes=False)
+            val = escape_query_element(str(v), to_bytes=False)
+            ret_list.append('='.join((key, val)))
+        return '&'.join(ret_list)
 
 
 class URL(BytestringHelper):
@@ -224,7 +224,7 @@ class URL(BytestringHelper):
                 url_str = url_str.to_text()  # better way to copy URLs?
             url_dict = parse_url(url_str, encoding=encoding, strict=strict)
 
-        _d = unicode()
+        _d = str()
         self.path_params = _d  # TODO: support parsing path params?
         for attr in self._attrs:
             val = url_dict.get(attr, _d) or _d
@@ -254,7 +254,7 @@ class URL(BytestringHelper):
         else:
             ret.append(host)
         if self.port:
-            ret.extend([':', unicode(self.port)])
+            ret.extend([':', str(self.port)])
         return ''.join(ret)
 
     def __iter__(self):
@@ -290,8 +290,8 @@ class URL(BytestringHelper):
                 _add(self.host)
             if self.port:
                 _add(':')
-                _add(unicode(self.port))
-        return u''.join(parts)
+                _add(str(self.port))
+        return ''.join(parts)
 
     def to_text(self, display=False):
         """\
@@ -327,7 +327,7 @@ class URL(BytestringHelper):
         if fragment:
             _add('#')
             _add(fragment)
-        return u''.join(parts)
+        return ''.join(parts)
 
     def to_bytes(self):
         return self.to_text().encode('utf-8')
@@ -351,7 +351,7 @@ class URL(BytestringHelper):
 
 def unquote(s, encoding=DEFAULT_ENCODING):
     "unquote('abc%20def') -> 'abc def'. aka percent decoding."
-    if isinstance(s, unicode):
+    if isinstance(s, str):
         if '%' not in s:
             return s
         bits = _ASCII_RE.split(s)
@@ -363,7 +363,7 @@ def unquote(s, encoding=DEFAULT_ENCODING):
             else:
                 append(bits[i])
             append(bits[i + 1])
-        return u''.join(res)
+        return ''.join(res)
 
     bits = s.split('%')
     if len(bits) == 1:

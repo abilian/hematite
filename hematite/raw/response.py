@@ -41,7 +41,7 @@ class RawResponse(object):
         self.connection_close = kwargs.pop('connection_close',
                                            traits.connection_close)
         if kwargs:
-            raise TypeError('got unexpected kwargs: %r' % kwargs.keys())
+            raise TypeError('got unexpected kwargs: %r' % list(kwargs.keys()))
 
     @property
     def status_line(self):

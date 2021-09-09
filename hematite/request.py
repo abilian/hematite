@@ -76,7 +76,7 @@ class Request(object):
         # now, to override/actually set a few critical fields
         # TODO: make a copy of raw headers, too?
         ret.headers = Headers()
-        for header, value in self.headers.items():  # TODO multi=True?
+        for header, value in list(self.headers.items()):  # TODO multi=True?
             _get_hv_copy = getattr(value, 'get_copy', None)
             if callable(_get_hv_copy):
                 ret.headers[header] = _get_hv_copy()

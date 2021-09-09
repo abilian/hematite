@@ -6,7 +6,7 @@ import errno
 import socket
 from io import BlockingIOError
 
-from hematite.async import join as async_join
+from hematite.async_ import join as async_join
 from hematite.request import Request, RawRequest
 from hematite.response import Response
 from hematite.raw.parser import ResponseReader
@@ -56,10 +56,10 @@ class ClientOperation(object):
         self.client.populate_headers(req)
         return self.client.request(request=req, timeout=timeout)
 
-    def async(self, url, body=None, nonblocking=True):
+    def async_(self, url, body=None, nonblocking=True):
         req = Request(self.method, url, body=body)
         self.client.populate_headers(req)
-        return self.client.request(request=req, async=True)
+        return self.client.request(request=req, async_=True)
 
 
 class UnboundClientOperation(object):
@@ -168,13 +168,13 @@ class Client(object):
 
     def request(self,
                 request,
-                async=False,
+                async_=False,
                 autoload_body=True,
                 timeout=DEFAULT_TIMEOUT):
         # TODO: kwargs for raise_exc, follow_redirects
         kw = dict(client=self, request=request, autoload_body=autoload_body)
         client_resp = ClientResponse(**kw)
-        if async:
+        if async_:
             return client_resp
         async_join([client_resp], timeout=timeout)
         if not client_resp.is_complete:
@@ -187,7 +187,7 @@ class _OldState(object):
     # TODO: ssl_connect?
 
     (NotStarted, LookupHost, Connect, SendRequestHeaders, SendRequestBody,
-     ReceiveResponseHeaders, ReceiveResponseBody, Complete) = range(8)
+     ReceiveResponseHeaders, ReceiveResponseBody, Complete) = list(range(8))
 
     # Alternate schemes:
     #
@@ -205,7 +205,7 @@ class _State(object):
     # TODO: Securing/Handshaking
     # TODO: WaitingForContinue  # 100 Continue that is
     (NotStarted, ResolvingHost, Connecting, Sending, Receiving,
-     Complete) = range(6)
+     Complete) = list(range(6))
 
 """RawRequest conversion paradigms:
 
@@ -276,7 +276,7 @@ class ClientResponse(object):
     @property
     def norm_timings(self):
         t = self.timings
-        return dict([(k, v - t['created']) for (k, v) in t.items()])
+        return dict([(k, v - t['created']) for (k, v) in list(t.items())])
 
     @property
     def semantic_state(self):

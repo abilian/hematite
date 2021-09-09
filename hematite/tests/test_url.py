@@ -68,24 +68,24 @@ def test_parse_authorities(test_authority):
 
 def test_basic():
     u1 = URL('http://googlewebsite.com/e-shops.aspx')
-    assert isinstance(u1.to_text(), unicode)
+    assert isinstance(u1.to_text(), str)
     assert u1.host == 'googlewebsite.com'
 
 
 def test_idna():
     u1 = URL('http://bücher.ch')
-    assert u1.host == u'bücher.ch'
+    assert u1.host == 'bücher.ch'
     assert u1.to_text(display=False) == 'http://xn--bcher-kva.ch'
-    assert u1.to_text(display=True) == u'http://bücher.ch'
+    assert u1.to_text(display=True) == 'http://bücher.ch'
 
     u2 = URL('https://xn--bcher-kva.ch')
-    assert u2.host == u'bücher.ch'
+    assert u2.host == 'bücher.ch'
     assert u2.to_text(display=False) == 'https://xn--bcher-kva.ch'
-    assert u2.to_text(display=True) == u'https://bücher.ch'
+    assert u2.to_text(display=True) == 'https://bücher.ch'
 
 
 def test_urlparse_equiv(test_url):
-    from urlparse import urlparse, urlunparse
+    from urllib.parse import urlparse, urlunparse
     url_obj = URL(test_url)
     assert urlunparse(urlparse(test_url)) == urlunparse(url_obj)
 
@@ -98,19 +98,19 @@ def test_query_params(test_url):
 
 
 def test_iri_query():
-    url = URL(u'http://minerals.rocks.ore/?mountain=\N{MOUNTAIN}')
-    assert url.query_params['mountain'] == u'\N{MOUNTAIN}'
+    url = URL('http://minerals.rocks.ore/?mountain=\N{MOUNTAIN}')
+    assert url.query_params['mountain'] == '\N{MOUNTAIN}'
     assert url.query_params.to_bytes().endswith('%E2%9B%B0')
-    assert url.query_params.to_text().endswith(u'\N{MOUNTAIN}')
+    assert url.query_params.to_text().endswith('\N{MOUNTAIN}')
 
     # fails because urlparse assumes query strings are encoded with latin1
     url2 = URL(url.to_bytes())
-    assert url2.query_params['mountain'] == u'\N{MOUNTAIN}'
+    assert url2.query_params['mountain'] == '\N{MOUNTAIN}'
 
 
 def test_iri_path():
-    url = URL(u'http://minerals.rocks.ore/mountain/\N{MOUNTAIN}/')
-    assert url.path == u'/mountain/\N{MOUNTAIN}/'
+    url = URL('http://minerals.rocks.ore/mountain/\N{MOUNTAIN}/')
+    assert url.path == '/mountain/\N{MOUNTAIN}/'
     assert url.to_bytes().endswith('%E2%9B%B0/')
 
 

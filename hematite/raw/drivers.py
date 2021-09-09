@@ -3,16 +3,13 @@ from hematite.compat import SocketIO
 from hematite.raw import core
 from hematite.raw import messages as M
 from hematite.raw import parser as P
-import errno
 import io
 import socket
 import ssl
 from threading import Lock, RLock
 
 
-class BaseIODriver(object):
-    __metaclass__ = ABCMeta
-
+class BaseIODriver(object, metaclass=ABCMeta):
     def __init__(self, reader, writer):
         self.reader = reader
         self.writer = writer
@@ -151,7 +148,7 @@ class SocketDriver(BaseIODriver):
                     # the socket was actually disconnected
                     raise core.EndOfStream
             except socket.error as e:
-                if e.errno not in (errno.EAGAIN, errno.EWOULDBLOCK):
+                if e.errno not in (socket.EAGAIN, socket.EWOULDBLOCK):
                     # if this isn't a blocking io errno, raise the legitimate
                     # exception
                     raise

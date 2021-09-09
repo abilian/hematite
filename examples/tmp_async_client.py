@@ -1,5 +1,5 @@
 
-from hematite.async import join
+from hematite.async_ import join
 from hematite.client import Client
 from hematite.profile import HematiteProfile
 from hematite.request import Request
@@ -27,20 +27,20 @@ def main(url, number, output, do_pdb=False):
     # req = Request('GET', 'http://blog.hatnote.com/')
 
     req = Request('GET', url)
-    kwargs = dict(request=req, autoload_body=False, async=True)
+    kwargs = dict(request=req, autoload_body=False, async_=True)
     resp_list = [client.request(**kwargs) for i in range(number)]
     resp = resp_list[0]
 
     join(resp_list, timeout=5.0)
 
-    print resp.raw_response
-    print [r.raw_response.status_code for r in resp_list]
+    print(resp.raw_response)
+    print([r.raw_response.status_code for r in resp_list])
     resp.autoload_body = True
     # import pdb; pdb.set_trace()
     join(resp_list, timeout=1.0)
-    print resp.raw_response.body
+    print(resp.raw_response.body)
     if output == '-':
-        print resp.raw_response.body.data
+        print(resp.raw_response.body.data)
     elif output:
         with open(output, 'w') as f:
             f.write(resp.raw_response.body.data)

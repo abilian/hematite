@@ -1,9 +1,11 @@
 import os
-import errno
+import socket
 from io import BlockingIOError
 import re
 
 # TODO: make configurable
+from socket import EAGAIN
+
 MAXLINE = 2 ** 19
 
 
@@ -20,7 +22,7 @@ _LINEAR_WS = ' \t\v\f'
 START_LINE_SEP = re.compile('[' + _LINEAR_WS + ']+')
 
 # <any US-ASCII control character (octets 0 - 31) and DEL (127)>
-_CTL = ''.join(chr(i) for i in xrange(0, 32)) + chr(127)
+_CTL = ''.join(chr(i) for i in range(0, 32)) + chr(127)
 
 _SEPARATORS = r'()<>@,;:\"/[]?={} ' + '\t'
 _TOKEN_EXCLUDE = ''.join(set(_CTL) | set(_SEPARATORS))
@@ -74,7 +76,7 @@ def readline(io_obj):
 
 def eagain(characters_written=0):
     # TODO: no os.strerror on windows
-    err = BlockingIOError(errno.EAGAIN,
-                          os.strerror(errno.EAGAIN))
+    err = BlockingIOError(socket.EAGAIN,
+                          os.strerror(socket.EAGAIN))
     err.characters_written = characters_written
     return err

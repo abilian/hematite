@@ -37,7 +37,7 @@ class RawRequest(object):
         self.content_length = kwargs.pop('content_length',
                                          traits.content_length)
         if kwargs:
-            raise TypeError('got unexpected kwargs: %r' % kwargs.keys())
+            raise TypeError('got unexpected kwargs: %r' % list(kwargs.keys()))
 
     @property
     def request_line(self):

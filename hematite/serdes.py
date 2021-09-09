@@ -81,7 +81,7 @@ def default_header_from_bytes(bytestr):
 
 
 def default_header_to_bytes(val):
-    return unicode(val).encode('latin-1')
+    return str(val).encode('latin-1')
 
 
 def list_header_from_bytes(val, unquote=True):

@@ -96,7 +96,7 @@ def test_content_type():
     assert resp.content_type.media_type == 'text/html'
     assert resp.content_type.charset == 'UTF-8'
     data = resp.get_data(as_bytes=False)
-    assert isinstance(data, unicode)
+    assert isinstance(data, str)
     rt_resp_bytes = resp.to_bytes()
     assert 'text/html; charset=UTF-8' in rt_resp_bytes
     repr(resp.content_type)

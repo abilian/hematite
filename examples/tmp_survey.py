@@ -1,6 +1,6 @@
 
 from hematite.url import URL
-from hematite.async import join
+from hematite.async_ import join
 from hematite.client import Client, ConnectionError, RequestTimeout
 from hematite.profile import HematiteProfile
 from hematite.request import Request
@@ -25,17 +25,17 @@ def do_survey(count):
     sites = get_sites('top_10k.csv', count)
     client = Client()
     for site in sites:
-        print '-------', site, '--------'
+        print('-------', site, '--------')
         try:
             res = do_single(client, site, timeout=TIMEOUT)
         except ConnectionError as ce:
-            print 'Connection Error:', ce
+            print('Connection Error:', ce)
         except RequestTimeout as rt:
-            print 'Timeout', rt
+            print('Timeout', rt)
         except EndOfStream as eos:
-            print 'EndOfStream', eos
+            print('EndOfStream', eos)
         results.append(res)
-    print 'done'
+    print('done')
 
 
 def do_async_survey(count):
@@ -46,7 +46,7 @@ def do_async_survey(count):
     sites = [s for s in sites if all([bls not in s for bls in blacklist])]
 
     # just adding www takes care of 65% of redirects
-    client_resps = [client.get.async('http://www.' + s + '/') for s in sites]
+    client_resps = [client.get.async_('http://www.' + s + '/') for s in sites]
     for cr in client_resps:
         cr.nonblocking = True
     observer = AsyncObserver(client_resps)
@@ -64,7 +64,7 @@ def do_single(client, site, timeout=TIMEOUT):
             res = follow_next_redirect(res)
             if is_supported_redirect(res.response.status_code):
                 res = follow_next_redirect(res)  # lol RECURSE
-    print res.raw_response
+    print(res.raw_response)
     return res
 
 
@@ -95,12 +95,12 @@ def follow_next_redirect(client_resp, timeout=TIMEOUT):
         new_url.scheme = rreq.host_url.scheme
         new_url.host = rreq.host_url.host
         new_url.port = rreq.host_url.port
-    print rreq.host_url, status_code, '->', new_method, new_url
+    print(rreq.host_url, status_code, '->', new_method, new_url)
 
     # build new request with remaining headers
     # (usually this would include filtering cookies and auth)
     new_req = Request(method=new_method, url=new_url)
-    print new_req.to_raw_request()
+    print(new_req.to_raw_request())
 
     return client_resp.client.request(request=new_req, timeout=timeout)
 
@@ -151,7 +151,7 @@ class AsyncObserver(object):
     def do_write(self):
         cur_time = time.time()
         if (cur_time - self.last_print) > self.interval:
-            print 'completed:', len(self.get_complete_others())
+            print('completed:', len(self.get_complete_others()))
             self.last_print = cur_time
 
     def do_read(self):

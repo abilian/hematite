@@ -2,8 +2,8 @@ from abc import ABCMeta
 from collections import namedtuple
 
 
-class Message(object):
-    __metaclass__ = ABCMeta
+class Message(object, metaclass=ABCMeta):
+    pass
 
 
 def make_message(name, *fields):

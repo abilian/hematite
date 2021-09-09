@@ -18,10 +18,10 @@ def test_request_headers_unimpl():
     for field in HTTP_REQUEST_FIELDS:
         if field.http_name in unimpl:
             unimpl.remove(field.http_name)
-    print
-    print 'Unimplemented Request Headers:'
-    print pformat(unimpl)
-    print
+    print()
+    print('Unimplemented Request Headers:')
+    print(pformat(unimpl))
+    print()
 
 
 
@@ -30,7 +30,7 @@ def test_response_headers_unimpl():
     for field in RESPONSE_FIELDS:
         if field.http_name in unimpl:
             unimpl.remove(field.http_name)
-    print
-    print 'Unimplemented Response Headers:'
-    print pformat(unimpl)
-    print
+    print()
+    print('Unimplemented Response Headers:')
+    print(pformat(unimpl))
+    print()

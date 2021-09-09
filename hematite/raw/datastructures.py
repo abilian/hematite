@@ -59,7 +59,7 @@ class Headers(OMD):
         elif isinstance(E, OMD):
             return super(Headers, self).update(E)
         elif hasattr(E, 'keys'):
-            for k in E.keys():
+            for k in list(E.keys()):
                 self[k] = E[k]
         else:
             seen = set()

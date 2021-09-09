@@ -92,8 +92,8 @@ def test_Headers():
         assert not dup_upper_a_headers
         assert not dup_lower_a_headers
 
-        assert dup_upper_a_headers.items() == []
-        assert dup_lower_a_headers.items() == []
+        assert list(dup_upper_a_headers.items()) == []
+        assert list(dup_lower_a_headers.items()) == []
 
     upper_a_headers = D.Headers()
     for k, v in upper_a:
@@ -114,7 +114,7 @@ def test_Headers_extend_setdefault():
 
     headers = H()
     headers.update(D.Headers([('A', 2)]))
-    assert headers.items() == [('A', 2)]
+    assert list(headers.items()) == [('A', 2)]
 
     headers = H()
     headers.update(OMD([('b', 2), ('B', 3)]))
@@ -125,12 +125,12 @@ def test_Headers_extend_setdefault():
 
     headers = H()
     headers.update({'b': 2})
-    assert headers.items() == [('a', 1), ('b', 2)]
+    assert list(headers.items()) == [('a', 1), ('b', 2)]
 
     headers = H()
     headers.update([('a', 2), ('b', 3)])
-    assert headers.items() == [('a', 2), ('b', 3)]
+    assert list(headers.items()) == [('a', 2), ('b', 3)]
 
     headers = H()
     headers.update(b=2)
-    assert headers.items() == [('a', 1), ('b', 2)]
+    assert list(headers.items()) == [('a', 1), ('b', 2)]

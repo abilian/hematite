@@ -4,7 +4,7 @@ from hematite.url import URL
 from hematite.raw import parser as P
 from hematite.raw import datastructures as D
 from hematite.raw import messages as M
-from itertools import izip
+
 
 
 @pytest.mark.parametrize('input,expected',
@@ -139,12 +139,12 @@ def test_StatusLine_round_trip():
 
      ('POST http://www.site.com/something?q=abcd HTTP/1.0',
       P.RequestLine(method='POST',
-                    url=URL(u'http://www.site.com/something?q=abcd'),
+                    url=URL('http://www.site.com/something?q=abcd'),
                     version=P.HTTPVersion(major=1, minor=0))),
 
      ('OPTIONS */* HTTP/1.1',
       P.RequestLine(method='OPTIONS',
-                    url=URL(u'*/*'),
+                    url=URL('*/*'),
                     version=P.HTTPVersion(major=1, minor=1)))])
 def test_RequestLine_froms(input, expected):
     """RequestLine.from_* should parse valid request lines."""
@@ -172,17 +172,17 @@ def test_RequestLine_froms_raises(input, expected):
 @pytest.mark.parametrize(
     'input,expected',
     [(P.RequestLine(method='GET',
-                    url=URL(u'/'),
+                    url=URL('/'),
                     version=P.HTTPVersion(major=1, minor=1)),
       'GET / HTTP/1.1'),
 
      (P.RequestLine(method='POST',
-                    url=URL(u'http://www.site.com/something?q=abcd'),
+                    url=URL('http://www.site.com/something?q=abcd'),
                     version=P.HTTPVersion(major=1, minor=0)),
       'POST http://www.site.com/something?q=abcd HTTP/1.0'),
 
      (P.RequestLine(method='OPTIONS',
-                    url=URL(u'*/*'),
+                    url=URL('*/*'),
                     version=P.HTTPVersion(major=1, minor=1)),
       'OPTIONS */* HTTP/1.1')])
 def test_RequestLine(input, expected):
@@ -195,7 +195,7 @@ def test_RequestLine(input, expected):
 def test_RequestLine_round_trip():
     """RequestLine.from_* should parse the output of RequestLine.to_bytes"""
 
-    expected = P.RequestLine(method='OPTIONS', url=URL(u'*'),
+    expected = P.RequestLine(method='OPTIONS', url=URL('*'),
                              version=P.HTTPVersion(1, 1))
 
     assert P.RequestLine.from_bytes(expected.to_bytes()) == expected
@@ -290,7 +290,7 @@ def test_HeadersWriter():
 
     writer = P.HeadersWriter(headers=_HEADER_PARSED)
 
-    for message, expected in izip(iter(writer), _HEADER_EXPECTED_LINES):
+    for message, expected in zip(iter(writer), _HEADER_EXPECTED_LINES):
         t, actual = message
         assert t == M.HaveLine.type
         assert writer.state is message
