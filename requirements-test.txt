@@ -1,6 +1,3 @@
-argparse
-pep8
-pyflakes
+flake8
 pytest
 pytest-cov
-# wsgiref==0.1.2
